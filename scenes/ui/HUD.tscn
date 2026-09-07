@@ -30,7 +30,7 @@ mouse_filter = 2
 
 [node name="LevelLabel" type="Label" parent="Root/TopBar/HBox/VitalsBox"]
 layout_mode = 2
-text = ""
+text = "Curse 1"
 
 [node name="HealthFrame" type="Panel" parent="Root/TopBar/HBox/VitalsBox"]
 custom_minimum_size = Vector2(220, 18)
@@ -55,7 +55,7 @@ mouse_filter = 2
 layout_mode = 2
 size_flags_vertical = 4
 horizontal_alignment = 2
-text = ""
+text = "2:30 to dawn"
 
 [node name="BottomBar" type="MarginContainer" parent="Root"]
 anchor_top = 1.0

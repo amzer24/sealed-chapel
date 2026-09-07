@@ -57,10 +57,11 @@ No external asset import step is required — see [Placeholder art](#placeholder
 - **End states** — death (overrun) or a timed clear both show a themed panel
   (not the default engine dialog) with a short Grimm line and an **Again**
   button that restarts the run. `scripts/ui/EndPanel.gd`.
-- **Diegetic HUD** — carved health/curse bars, all hand-styled
-  (`scripts/autoload/UITheme.gd`), no default `Theme`. The level and
-  countdown *labels* are currently muted/blank (see "Notes for reviewers"
-  below) — the bars themselves still animate.
+- **Diegetic HUD** — carved health/curse bars, a level label and a
+  countdown to dawn, all hand-styled (`scripts/autoload/UITheme.gd`), no
+  default `Theme`. The level/countdown labels use the studio-locked
+  `Copy.HUD_LEVEL` ("Curse %d") and `Copy.HUD_TIMER` ("%d:%02d to dawn")
+  format strings.
 - **Kitbashed dressing** — dead trees, a broken chapel ruin, candle
   clusters with a soft glow, a *broken* iron fence (two short, disconnected
   runs — deliberately not a ring), a drifting fog layer, and a bargain
@@ -166,11 +167,9 @@ generator, on purpose (a simple streamer over a "perfect" infinite world):
   copy (its one-liner). `EndPanel` shows a title + the **Again** button
   only, with no invented body line (the old "Curse level %d reached...
   creatures put down." summary is gone). The HUD's level and countdown
-  *labels* (`Curse Lv. %d`, `%d:%02d till dawn`) are invented copy that was
-  never studio-locked, so they are muted/blank for now — `HUD.gd` still
-  updates the underlying bars from the same signals, and only the label
-  format strings need to change once Verse locks Grimm replacements. The
-  seven studio-locked constants in `Copy.gd` (`DEATH_TITLE`, `CLEAR_TITLE`,
+  labels are studio-locked, not invented: `Copy.HUD_LEVEL` ("Curse %d")
+  and `Copy.HUD_TIMER` ("%d:%02d to dawn"), wired in `HUD.gd`. The seven
+  panel/bargain constants in `Copy.gd` (`DEATH_TITLE`, `CLEAR_TITLE`,
   `BARGAIN_EMPTY`, `CTA_AGAIN`, `LONGER_SHADOW`, `FEVER_PULSE`,
   `TITHE_OF_FLESH`) are unchanged.
 - **Palette lock (post-merge polish):** `Palette.gd` now exposes exactly

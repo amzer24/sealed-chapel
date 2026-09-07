@@ -2,12 +2,9 @@ extends CanvasLayer
 
 ## Diegetic HUD: a carved health bar, curse (XP) bar, level rune and a
 ## countdown to dawn. No default Godot progress bars/panels are used; the
-## bars are hand-driven ColorRects sized via anchors.
-##
-## The level and countdown labels are muted (left blank) for now: "Curse
-## Lv. %d" and "%d:%02d till dawn" were invented HUD copy, not studio-locked
-## strings. They stay wired to their signals so the moment Verse locks
-## Grimm replacements, only the format strings below need to change.
+## bars are hand-driven ColorRects sized via anchors. The level and
+## countdown labels use the studio-locked `Copy.HUD_LEVEL` /
+## `Copy.HUD_TIMER` format strings.
 
 @onready var root: Control = $Root
 @onready var health_fill: ColorRect = $Root/TopBar/HBox/VitalsBox/HealthFrame/HealthFill
@@ -27,12 +24,13 @@ func _on_health_changed(current: float, max_health: float) -> void:
 	var ratio := 0.0 if max_health <= 0.0 else clampf(current / max_health, 0.0, 1.0)
 	health_fill.anchor_right = ratio
 
-func _on_xp_changed(current: float, needed: float, _level: int) -> void:
+func _on_xp_changed(current: float, needed: float, level: int) -> void:
 	var ratio := 0.0 if needed <= 0.0 else clampf(current / needed, 0.0, 1.0)
 	xp_fill.anchor_right = ratio
-	# Muted: no studio-locked "Curse Lv. %d" copy yet.
-	level_label.text = ""
+	level_label.text = Copy.HUD_LEVEL % level
 
-func _on_timer_changed(_elapsed: float, _remaining: float) -> void:
-	# Muted: no studio-locked "%d:%02d till dawn" copy yet.
-	timer_label.text = ""
+func _on_timer_changed(_elapsed: float, remaining: float) -> void:
+	var total := int(ceil(remaining))
+	var minutes := total / 60
+	var seconds := total % 60
+	timer_label.text = Copy.HUD_TIMER % [minutes, seconds]
