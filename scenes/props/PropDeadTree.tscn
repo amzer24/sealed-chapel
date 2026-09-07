@@ -1,0 +1,23 @@
+[gd_scene load_steps=1 format=3]
+
+[node name="PropDeadTree" type="Node2D"]
+
+[node name="Trunk" type="Polygon2D" parent="."]
+color = Color(0.035, 0.031, 0.043, 1)
+polygon = PackedVector2Array(-7, 0, 7, 0, 4, -90, -4, -90)
+
+[node name="BranchLeft" type="Polygon2D" parent="."]
+color = Color(0.035, 0.031, 0.043, 1)
+polygon = PackedVector2Array(-6, -70, -3, -75, -50, -116, -46, -118)
+
+[node name="BranchRight" type="Polygon2D" parent="."]
+color = Color(0.035, 0.031, 0.043, 1)
+polygon = PackedVector2Array(6, -64, 3, -68, 46, -101, 42, -104)
+
+[node name="BranchMid" type="Polygon2D" parent="."]
+color = Color(0.071, 0.063, 0.086, 1)
+polygon = PackedVector2Array(-3, -36, -4, -40, -30, -60, -27, -57)
+
+[node name="Twig" type="Polygon2D" parent="."]
+color = Color(0.035, 0.031, 0.043, 1)
+polygon = PackedVector2Array(-46, -118, -58, -130, -54, -124)
