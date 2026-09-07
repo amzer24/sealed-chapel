@@ -52,3 +52,6 @@ text = "A bargain is offered..."
 layout_mode = 2
 theme_override_constants/separation = 16
 alignment = 1
+
+[node name="EmptyTimer" type="Timer" parent="."]
+one_shot = true

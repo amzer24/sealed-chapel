@@ -102,8 +102,10 @@ func apply_upgrade_stat(stat: String, amount: float) -> void:
 		"move_speed":
 			move_speed += amount
 		"max_health":
-			max_health += amount
-			health = min(max_health, health + amount)
+			# Tithe of Flesh pays for its damage with a max-health cost; floor
+			# both so a bargain can never be the literal cause of death.
+			max_health = maxf(10.0, max_health + amount)
+			health = clampf(health + amount, 1.0, max_health)
 			Game.update_health(health, max_health)
 		"pickup_radius":
 			pickup_radius += amount

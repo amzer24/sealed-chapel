@@ -24,13 +24,25 @@ const XP_GROWTH := 1.35
 
 const XP_ORB_SCENE := preload("res://scenes/pickups/XPOrb.tscn")
 
+## The three studio-locked curse bargains. Each can be struck once per run;
+## once all three are spent, later level-ups offer `Copy.BARGAIN_EMPTY`
+## instead of cards.
 const UPGRADE_POOL := [
-	{"id": "bone_barbs", "name": "Bone Barbs", "desc": "+4 attack damage.", "stat": "damage", "amount": 4.0},
-	{"id": "grave_speed", "name": "Grave Speed", "desc": "+20 move speed.", "stat": "move_speed", "amount": 20.0},
-	{"id": "curseglass", "name": "Curseglass Vial", "desc": "Attacks strike faster.", "stat": "attack_speed", "amount": 0.12},
-	{"id": "dried_vein", "name": "Dried Vein", "desc": "+20 max health, healed.", "stat": "max_health", "amount": 20.0},
-	{"id": "wraith_step", "name": "Wraith Step", "desc": "+18 pickup reach.", "stat": "pickup_radius", "amount": 18.0},
-	{"id": "ravens_sight", "name": "Raven's Sight", "desc": "+40 attack range.", "stat": "attack_range", "amount": 40.0},
+	{
+		"id": "longer_shadow",
+		"title": Copy.LONGER_SHADOW,
+		"effects": [{"stat": "attack_range", "amount": 40.0}],
+	},
+	{
+		"id": "fever_pulse",
+		"title": Copy.FEVER_PULSE,
+		"effects": [{"stat": "attack_speed", "amount": 0.12}],
+	},
+	{
+		"id": "tithe_of_flesh",
+		"title": Copy.TITHE_OF_FLESH,
+		"effects": [{"stat": "damage", "amount": 6.0}, {"stat": "max_health", "amount": -10.0}],
+	},
 ]
 
 var state: State = State.PLAYING
@@ -85,14 +97,24 @@ func _trigger_bargain() -> void:
 	# immediately (resuming play) must win over this pause, not the other
 	# way around.
 	get_tree().paused = true
-	var pool := UPGRADE_POOL.duplicate()
-	pool.shuffle()
-	bargain_offered.emit(pool.slice(0, 3))
+	var available: Array = UPGRADE_POOL.filter(func(card: Dictionary) -> bool:
+		return not bargain_history.has(card.id)
+	)
+	bargain_offered.emit(available)
 
 func choose_bargain(card: Dictionary) -> void:
 	bargain_history.append(card.id)
-	if _player and _player.has_method("apply_upgrade_stat"):
-		_player.apply_upgrade_stat(card.stat, card.amount)
+	if _player:
+		for effect in card.effects:
+			_player.apply_upgrade_stat(effect.stat, effect.amount)
+	_resume_from_bargain()
+
+## Called when the bargain pool is spent (`Copy.BARGAIN_EMPTY` was shown)
+## and the modal auto-dismisses; there is nothing to apply, just resume.
+func dismiss_empty_bargain() -> void:
+	_resume_from_bargain()
+
+func _resume_from_bargain() -> void:
 	state = State.PLAYING
 	get_tree().paused = false
 	state_changed.emit(state)
