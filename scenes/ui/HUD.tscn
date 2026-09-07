@@ -1,0 +1,82 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/HUD.gd" id="1"]
+
+[node name="HUD" type="CanvasLayer"]
+layer = 1
+script = ExtResource("1")
+
+[node name="Root" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="TopBar" type="MarginContainer" parent="Root"]
+anchor_right = 1.0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 76.0
+mouse_filter = 2
+
+[node name="HBox" type="HBoxContainer" parent="Root/TopBar"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="VitalsBox" type="VBoxContainer" parent="Root/TopBar/HBox"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="LevelLabel" type="Label" parent="Root/TopBar/HBox/VitalsBox"]
+layout_mode = 2
+text = "Curse Lv. 1"
+
+[node name="HealthFrame" type="Panel" parent="Root/TopBar/HBox/VitalsBox"]
+custom_minimum_size = Vector2(220, 18)
+layout_mode = 2
+
+[node name="HealthFill" type="ColorRect" parent="Root/TopBar/HBox/VitalsBox/HealthFrame"]
+layout_mode = 0
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 2.0
+offset_bottom = -2.0
+color = Color(0.42, 0.08, 0.1, 1)
+
+[node name="Spacer" type="Control" parent="Root/TopBar/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="TimerLabel" type="Label" parent="Root/TopBar/HBox"]
+layout_mode = 2
+size_flags_vertical = 4
+horizontal_alignment = 2
+text = "2:30 till dawn"
+
+[node name="BottomBar" type="MarginContainer" parent="Root"]
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -46.0
+offset_right = -16.0
+offset_bottom = -16.0
+mouse_filter = 2
+
+[node name="XPFrame" type="Panel" parent="Root/BottomBar"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="XPFill" type="ColorRect" parent="Root/BottomBar/XPFrame"]
+layout_mode = 0
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = 2.0
+offset_bottom = -2.0
+color = Color(0.78, 0.62, 0.22, 1)

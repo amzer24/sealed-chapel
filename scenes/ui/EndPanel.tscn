@@ -1,0 +1,61 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/EndPanel.gd" id="1"]
+
+[node name="EndPanel" type="CanvasLayer"]
+layer = 20
+process_mode = 3
+script = ExtResource("1")
+visible = false
+
+[node name="Root" type="Control" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="Dim" type="ColorRect" parent="Root"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 1
+color = Color(0.035, 0.031, 0.043, 0.85)
+
+[node name="CenterContainer" type="CenterContainer" parent="Root"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="Panel" type="Panel" parent="Root/CenterContainer"]
+custom_minimum_size = Vector2(440, 260)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="Root/CenterContainer/Panel"]
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 26
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 26
+
+[node name="VBox" type="VBoxContainer" parent="Root/CenterContainer/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Title" type="Label" parent="Root/CenterContainer/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+horizontal_alignment = 1
+autowrap_mode = 2
+text = "The grounds took you."
+
+[node name="Sub" type="Label" parent="Root/CenterContainer/Panel/Margin/VBox"]
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 2
+text = "Curse level 1 reached. 0 creatures put down."
+
+[node name="AgainButton" type="Button" parent="Root/CenterContainer/Panel/Margin/VBox"]
+custom_minimum_size = Vector2(160, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Again"

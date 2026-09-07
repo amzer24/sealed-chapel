@@ -1,0 +1,57 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/BargainModal.gd" id="1"]
+
+[node name="BargainModal" type="CanvasLayer"]
+layer = 10
+process_mode = 3
+script = ExtResource("1")
+visible = false
+
+[node name="Root" type="Control" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="Dim" type="ColorRect" parent="Root"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 1
+color = Color(0.035, 0.031, 0.043, 0.72)
+
+[node name="CenterContainer" type="CenterContainer" parent="Root"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="Panel" type="Panel" parent="Root/CenterContainer"]
+custom_minimum_size = Vector2(660, 300)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="Root/CenterContainer/Panel"]
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="Root/CenterContainer/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Title" type="Label" parent="Root/CenterContainer/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.78, 0.62, 0.22, 1)
+horizontal_alignment = 1
+text = "A bargain is offered..."
+
+[node name="Cards" type="HBoxContainer" parent="Root/CenterContainer/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="EmptyTimer" type="Timer" parent="."]
+one_shot = true
