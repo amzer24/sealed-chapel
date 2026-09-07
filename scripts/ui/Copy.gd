@@ -12,5 +12,3 @@ const CTA_AGAIN := "Again"
 const LONGER_SHADOW := "Reach farther into the dark."
 const FEVER_PULSE := "Strike as the fever rises."
 const TITHE_OF_FLESH := "Bleed for a heavier hand."
-
-const BARGAIN_TITLE := "A bargain is offered..."

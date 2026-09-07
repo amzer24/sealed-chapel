@@ -17,7 +17,7 @@ mouse_filter = 2
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 1
-color = Color(0.035, 0.031, 0.043, 0.85)
+color = Color(0.101961, 0.078431, 0.062745, 0.85)
 
 [node name="CenterContainer" type="CenterContainer" parent="Root"]
 anchor_right = 1.0
@@ -47,12 +47,6 @@ theme_override_font_sizes/font_size = 26
 horizontal_alignment = 1
 autowrap_mode = 2
 text = "The grounds took you."
-
-[node name="Sub" type="Label" parent="Root/CenterContainer/Panel/Margin/VBox"]
-layout_mode = 2
-horizontal_alignment = 1
-autowrap_mode = 2
-text = "Curse level 1 reached. 0 creatures put down."
 
 [node name="AgainButton" type="Button" parent="Root/CenterContainer/Panel/Margin/VBox"]
 custom_minimum_size = Vector2(160, 44)

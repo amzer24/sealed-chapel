@@ -74,7 +74,7 @@ func _process(_delta: float) -> void:
 # ---------------------------------------------------------------------------
 
 func _build_shared_ground_tile_set() -> void:
-	var variants := [Palette.SOOT, Palette.SOOT_DARK, Palette.BRUISE_PURPLE_DARK, Palette.DRIED_BLOOD_DARK]
+	var variants := [Palette.SOOT, Palette.ROT, Palette.BRUISE, Palette.CURSE]
 	var atlas_image := Image.create(TILE_SIZE * variants.size(), TILE_SIZE, false, Image.FORMAT_RGB8)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 1337
