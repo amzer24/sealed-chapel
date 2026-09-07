@@ -3,7 +3,9 @@ extends CharacterBody2D
 
 ## The player: WASD/arrow movement plus a timed auto-attack that fires at the
 ## nearest enemy in range. Stats are mutated directly by bargain upgrades via
-## `apply_upgrade_stat`.
+## `apply_upgrade_stat`. The roam is endless (chunks stream in around the
+## player in `World.gd`), so there is no bounds clamp here and no wall to
+## hit -- movement is unconstrained in every direction.
 
 const PROJECTILE_SCENE := preload("res://scenes/player/Projectile.tscn")
 
@@ -15,8 +17,6 @@ const PROJECTILE_SCENE := preload("res://scenes/player/Projectile.tscn")
 @export var pickup_radius := 46.0
 
 var health: float
-var bounds_min := Vector2.ZERO
-var bounds_max := Vector2.ZERO
 
 @onready var attack_timer: Timer = $AttackTimer
 
@@ -36,20 +36,9 @@ func _physics_process(_delta: float) -> void:
 		input_vec = input_vec.normalized()
 	velocity = input_vec * move_speed
 	move_and_slide()
-	_apply_soft_bounds()
 
 func _axis(key_a: Key, key_b: Key) -> float:
 	return 1.0 if (Input.is_physical_key_pressed(key_a) or Input.is_physical_key_pressed(key_b)) else 0.0
-
-## Soft bounds: no walls or colliders, the roam simply cannot walk past the
-## edge of the wood. This is deliberately not a sealed ring.
-func _apply_soft_bounds() -> void:
-	global_position.x = clamp(global_position.x, bounds_min.x, bounds_max.x)
-	global_position.y = clamp(global_position.y, bounds_min.y, bounds_max.y)
-
-func set_bounds(min_pos: Vector2, max_pos: Vector2) -> void:
-	bounds_min = min_pos
-	bounds_max = max_pos
 
 func get_health() -> float:
 	return health

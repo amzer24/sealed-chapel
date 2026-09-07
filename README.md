@@ -3,13 +3,17 @@
 *Tag: Curse Arena*
 
 A Grimm fairy-tale, Vampire-Survivors-style prototype built in **Godot 4.x**
-(GDScript). One open roaming map through a haunted wood and a ruined chapel
-clearing — soot, bone, bruise-purple, dried-blood and curse-gold set
-dressing, diegetic storybook UI, and a curse-bargain level-up loop.
+(GDScript). A **procedural, endless** roam through a haunted wood and a
+ruined chapel clearing — soot, bone, bruise-purple, dried-blood and
+curse-gold set dressing, diegetic storybook UI, and a curse-bargain
+level-up loop.
 
-This is explicitly **not** a sealed combat ring: the map has soft roam
-bounds (an invisible edge to the wood, not a wall or closing circle), and
-none of the dressing (iron fence, chapel ruin) forms a closed loop.
+This is explicitly **not** a sealed combat ring: the map is not a single
+fixed, hand-authored rectangle. Square chunks of ground + dressing stream
+in around the player as they walk (Survivors-style) and unload behind
+them, so the roam has **no hard wall anywhere** and can continue
+indefinitely in any direction. None of the dressing (iron fence, chapel
+ruin) ever forms a closed loop, in any chunk.
 
 ## Opening the project
 
@@ -31,9 +35,14 @@ No external asset import step is required — see [Placeholder art](#placeholder
 
 ## What the Prototype includes
 
-- **Open roam arena** — a procedurally-painted `TileMap` (no imported art)
-  inside a `Y`-sorted 2D world, with **soft bounds**: the player and camera
-  simply cannot pass the edge of the wood. No walls, no closing ring.
+- **Procedural, endless roam** — no fixed map rectangle. `World.gd` streams
+  square chunks (32×32 tiles, ~1024×1024px each) of procedurally-painted
+  ground in around the player, unloading chunks once they're a couple of
+  chunks behind. Each chunk's ground + dressing is generated from a seed
+  derived from its own coordinate, so revisiting a chunk always regenerates
+  the *same* layout deterministically, without needing to keep it resident.
+  There is no wall and no camera/position clamp anywhere — the player can
+  walk in one direction indefinitely and new wood keeps streaming in.
 - **Player** — move + automatic attack (nearest-enemy targeting, simple
   projectile) via `scripts/player/Player.gd`.
 - **One enemy type ("Blob")** — shambles toward the player and deals contact
@@ -65,8 +74,9 @@ No external asset import step is required — see [Placeholder art](#placeholder
 - Inventory and minimap systems (shown in the UI mood-board for mood only).
 - Multiplayer, a campaign/meta layer, or any paid/licensed assets.
 - Unreal Engine — this is Godot 4 / GDScript only.
-- A sealed ring / collider-as-level design. The roam uses soft bounds, not
-  a shrinking or walled arena.
+- A sealed ring / collider-as-level design, or any fixed hand-authored map
+  rectangle. The roam is procedural and endless — chunks stream in around
+  the player with no wall, no shrinking bounds, and no closed loop.
 - Real balancing/tuning numbers. Stats (health, damage, spawn rates, XP
   curve) are placeholder values sized to make the loop legible for a short
   prototype run; they are **not** meant to hit the eventual 8–12 minute run
@@ -101,7 +111,7 @@ reference collision shapes and node paths that would remain unchanged.
 project.godot              Engine config (Godot 4.x, GL Compatibility renderer)
 scenes/
   main/Main.tscn            Composition root: World + HUD + BargainModal + EndPanel
-  world/World.tscn           The roam: TileMap, Y-sorted entity layer, fog, spawner
+  world/World.tscn           The roam: Ground/YSort/Fog layers, spawn + chunk timers
   player/                    Player + auto-attack Projectile
   enemies/                   Blob mob
   pickups/                   XP orb
@@ -112,8 +122,39 @@ scripts/
   autoload/UITheme.gd        Builds the one shared diegetic Theme in code
   ui/Palette.gd              Shared colour constants (soot/bone/bruise/blood/gold)
   ui/Copy.gd                 Locked UK-English copy constants
-  player/, enemies/, pickups/, world/, props/   Gameplay scripts
+  world/World.gd             Chunk streamer: procedural ground + dressing + waves
+  player/, enemies/, pickups/, props/   Gameplay scripts
 ```
+
+## Endless map / chunk streaming
+
+`scripts/world/World.gd` is a small chunk streamer rather than a level
+generator, on purpose (a simple streamer over a "perfect" infinite world):
+
+- The world is divided into 32×32-tile chunks (`CHUNK_TILES`, ~1024px at
+  32px tiles). Every `ChunkTimer` tick (0.35s) it works out which chunk the
+  player is standing in.
+- Chunks within `LOAD_RADIUS` (1, i.e. a 3×3 grid) of the player's chunk
+  are guaranteed loaded; anything farther than `KEEP_RADIUS` (2) is
+  unloaded. The gap between the two radii is deliberate hysteresis so nearby
+  chunks don't load/unload every time the player nudges a boundary.
+- Loading a chunk creates one `TileMap` (ground) plus a handful of
+  `Polygon2D` dressing props, seeded from a hash of the chunk's own
+  coordinate — so the same chunk always regenerates identically if the
+  player wanders back into it, without the engine needing to keep it
+  resident the whole time.
+- The world-origin chunk always carries the bargain shrine landmark, so
+  it's guaranteed visible near the player's starting position; every other
+  prop (dead trees, chapel ruin fragments, candle clusters, broken iron
+  fence pieces) is placed randomly and sparsely per chunk, so no chunk ever
+  assembles a closed loop.
+- There is no bounds clamp on the player or camera at all (see
+  `Player.gd`) — this is the "keep streaming, no hard wall" option: the
+  roam simply keeps generating new chunks in whichever direction the player
+  walks, for as long as a run lasts.
+- Enemy waves spawn procedurally around the player's current position
+  (random angle/distance), independent of chunk boundaries, so waves keep
+  working the same way regardless of how far the player has roamed.
 
 ## Notes for reviewers
 
@@ -124,5 +165,8 @@ scripts/
   rather than an Input Map, so there's nothing to configure in Project
   Settings before playing.
 - The project was smoke-tested headlessly (`godot --headless --path .`)
-  through multiple full runs, including forced death and repeated
-  bargain-pick cycles, to confirm there are no runtime errors.
+  through multiple full runs, including forced death, repeated
+  bargain-pick cycles, and a scripted walk of 3000+ pixels to confirm the
+  chunk streamer loads/unloads correctly and stays memory-bounded (loaded
+  chunk count plateaus rather than growing unbounded) — no runtime errors
+  in any of it.
