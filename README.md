@@ -190,6 +190,15 @@ generator, on purpose (a simple streamer over a "perfect" infinite world):
   the card `Panel`; pause-on-open and centred-card behaviour are
   untouched. Only existing palette hexes are used — no grey slab, no
   sixth colour.
+- **Fog un-glued from the player (playtest fix):** `World.gd` no longer
+  sets `fog.global_position = player.global_position` every frame — that
+  made the fog `Polygon2D` clouds read as a personal light pool glued to
+  the player instead of ambient atmosphere. Fog now only re-anchors, in a
+  discrete jump, to the origin of the player's current chunk when the
+  player crosses into a new chunk, so it stays fixed in world space while
+  the player wanders within a chunk (`Fog.gd`'s own slow local drift is
+  unchanged and still layers on top). Fog is still not a child of
+  `Player`.
 - `Game` and `UITheme` are the only autoloads; everything else is composed
   through normal scene instancing (`Main.tscn` instances `World`, `HUD`,
   `BargainModal`, `EndPanel` as siblings).
