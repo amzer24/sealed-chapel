@@ -25,6 +25,7 @@ shape = SubResource("CircleShape2D_1")
 [node name="Visual" type="Node2D" parent="."]
 
 [node name="Sprite" type="Sprite2D" parent="Visual"]
+texture_filter = 1
 texture = ExtResource("2")
 
 [node name="AttackArea" type="Area2D" parent="."]

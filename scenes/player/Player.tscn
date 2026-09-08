@@ -18,6 +18,7 @@ shape = SubResource("CircleShape2D_1")
 position = Vector2(0, -1)
 
 [node name="Sprite" type="Sprite2D" parent="Visual"]
+texture_filter = 1
 texture = ExtResource("2")
 
 [node name="AttackTimer" type="Timer" parent="."]

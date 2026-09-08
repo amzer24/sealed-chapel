@@ -1,39 +1,10 @@
-[gd_scene load_steps=1 format=3]
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/props/bargain_shrine.png" id="1"]
 
 [node name="PropBargainShrine" type="Node2D"]
 
-[node name="Glow" type="Polygon2D" parent="."]
-color = Color(0.29, 0.2, 0.33, 0.28)
-polygon = PackedVector2Array(0, -76, 25, -65, 36, -40, 25, -15, 0, -4, -25, -15, -36, -40, -25, -65)
-
-[node name="Base" type="Polygon2D" parent="."]
-color = Color(0.035, 0.031, 0.043, 1)
-polygon = PackedVector2Array(-26, 0, 26, 0, 20, -14, -20, -14)
-
-[node name="Monolith" type="Polygon2D" parent="."]
-color = Color(0.17, 0.12, 0.2, 1)
-polygon = PackedVector2Array(-16, -14, 16, -14, 10, -62, -10, -62)
-
-[node name="Cap" type="Polygon2D" parent="."]
-color = Color(0.035, 0.031, 0.043, 1)
-polygon = PackedVector2Array(-4, -62, 4, -62, 0, -74)
-
-[node name="ThornLeftLower" type="Polygon2D" parent="."]
-color = Color(0.035, 0.031, 0.043, 1)
-polygon = PackedVector2Array(-16, -24, -30, -30, -16, -34)
-
-[node name="ThornLeftUpper" type="Polygon2D" parent="."]
-color = Color(0.035, 0.031, 0.043, 1)
-polygon = PackedVector2Array(-14, -44, -27, -50, -13, -53)
-
-[node name="ThornRightLower" type="Polygon2D" parent="."]
-color = Color(0.035, 0.031, 0.043, 1)
-polygon = PackedVector2Array(16, -24, 30, -30, 16, -34)
-
-[node name="ThornRightUpper" type="Polygon2D" parent="."]
-color = Color(0.035, 0.031, 0.043, 1)
-polygon = PackedVector2Array(14, -44, 27, -50, 13, -53)
-
-[node name="Rune" type="Polygon2D" parent="."]
-color = Color(0.78, 0.62, 0.22, 1)
-polygon = PackedVector2Array(0, -57, 9, -48, 0, -39, -9, -48)
+[node name="Sprite" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0, -32)
+texture = ExtResource("1")
