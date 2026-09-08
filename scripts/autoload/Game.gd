@@ -38,7 +38,11 @@ const UPGRADE_POOL := [
 		"title": Copy.LONGER_SHADOW,
 		"tick": Copy.TICK_LONGER_SHADOW,
 		"tag": "bless",
-		"effects": [{"stat": "attack_range", "amount": 40.0}],
+		# Remapped from the old "attack_range" bump to the clear-tool aura's
+		# radius: the same +40 magnitude, now widening the soft-DPS aura
+		# (the player-facing effect) instead of the projectile's targeting
+		# range.
+		"effects": [{"stat": "aura_radius", "amount": 40.0}],
 	},
 	{
 		"id": "fever_pulse",
