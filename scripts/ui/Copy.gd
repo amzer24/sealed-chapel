@@ -15,7 +15,7 @@ const TITHE_OF_FLESH := "Bleed for a heavier hand."
 const BONE_WARD := "Bone holds what flesh cannot."
 const GREEDY_HANDS := "Reach farther for the fallen."
 const GLASS_BELL := "Faster feet. Thinner blood."
-const HEAVY_HAND := "Strike heavier than bone."
+const HEAVY_HAND := "Strike harder. Keep the flesh."
 
 ## Pick-juice tick text (studio-locked, exact strings): a brief floating
 ## label `BargainModal.gd` shows over the resumed playfield the instant a
