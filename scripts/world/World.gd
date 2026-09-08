@@ -37,8 +37,17 @@ const GROUND_ATLAS := preload("res://assets/tiles/peat_atlas.png")
 const GROUND_VARIANT_COUNT := 3
 
 @export var spawn_interval_start := 2.2
-@export var spawn_interval_min := 0.55
+## Raised from 0.55 -- the mid/late-run spawn rate ceiling was hitting its
+## floor too readily, stacking with the growing per-wave count below into a
+## spawn "brick wall" the aura (this pass) couldn't keep pace with. Number
+## tweak only, no new enemy types.
+@export var spawn_interval_min := 0.65
 @export var spawn_ramp_time := 100.0
+## Seconds of elapsed run time per +1 to a wave's enemy count (see
+## `_spawn_wave`). Raised from 22.0 so wave size grows a little slower,
+## softening the same mid-run density brick wall `spawn_interval_min`
+## targets above.
+const WAVE_SIZE_RAMP_SECONDS := 28.0
 
 @onready var ground: Node2D = $Ground
 @onready var ysort: Node2D = $YSort
@@ -241,7 +250,7 @@ func _on_spawn_timer_timeout() -> void:
 	spawn_timer.wait_time = lerpf(spawn_interval_start, spawn_interval_min, t)
 
 func _spawn_wave() -> void:
-	var count := 1 + int(Game.elapsed / 22.0)
+	var count := 1 + int(Game.elapsed / WAVE_SIZE_RAMP_SECONDS)
 	for i in count:
 		_spawn_enemy()
 
