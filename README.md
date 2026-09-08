@@ -489,3 +489,39 @@ generator, on purpose (a simple streamer over a "perfect" infinite world):
   rewrite, the `_process`-deferred-`queue_free` refactor noted in
   `Enemy.gd`/`XPOrb.gd`/`Heart.gd` (flagged for a future pass, not touched
   here), dual-grid, and PixelLab.
+- **Cast sprites redraw, concept-match (this pass, supersedes closed PR
+  #16):** #16 was closed as a fail — its player/crawler/wraith PNGs read
+  as flat fill-mask silhouettes with a mechanical boundary outline (a
+  triangle, a crab-blob, a diamond), not characters, next to the concept
+  board. All three are redrawn from scratch as explicit, hand-authored
+  pixel grids (every pixel placed with intent, not derived from a filled
+  mask + edge-detect pass), still exactly `player.png` 24×24 / `crawler.
+  png` + `wraith.png` 20×20 and still only the five locked hexes (soot
+  `#1A1410` / bone `#E8DCC8` / bruise `#4A3A5C` / curse `#C4A35A` / rot
+  `#2D1F18`) with hard alpha (0 or 255, no antialiasing) and `Sprite2D`
+  `texture_filter = NEAREST` untouched. **Player:** bruise cloak with a
+  1px curse outline, a pointed hood with a stepped brim ledge (not a
+  smooth cone), an inset soot void recessed under the hood holding one
+  off-centre curse eye (asymmetric, reads as a single eye peering from
+  shadow rather than a centred dot-pair), a curse seam line breaking the
+  cloak's front, a waist pinch partway down, and a ragged three-point hem
+  instead of a flat bottom edge. **Crawler:** rot carapace with a bone
+  outline and a symmetric bruise eye pair set into the front dome; six
+  legs (three per side) are explicit multi-pixel bent polylines (thigh →
+  knee → foot, each leg a different bend/length) so they read as jointed
+  limbs, not stub triangles — front legs sweep forward, mid legs kick a
+  knee down, back legs trail low. **Wraith:** bruise robe with a bone
+  outline widening under a solid curse flame tip (no outline on the tip
+  itself, so it reads as the glowing point); a curse ember trail bleeds
+  a few rows down from the tip into the body before fading back to
+  bruise; the taper has a one-sided flicker sway instead of a straight
+  cone; the hem ends in three uneven melted-wax drips (short/medium/long,
+  each tipped with a pale bone droplet) instead of a flat bottom edge.
+  Verified programmatically (not just by eye): a script re-opens each of
+  the three PNGs, asserts the exact canvas size, and asserts every
+  opaque pixel's RGB is one of the five locked hexes with alpha only 0 or
+  255 (no sixth colour, no antialiasing) — all three pass. Out of scope
+  per the brief: the pickup/shrine/peat/UI sprites, audio, PixelLab, and
+  any scene/script rewrite — only the three PNGs changed, `.import`
+  files and every scene/script untouched. Loom holds until Flick+Shade
+  give this a 1× PASS next to the concept board.
