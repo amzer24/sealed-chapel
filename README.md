@@ -190,6 +190,15 @@ generator, on purpose (a simple streamer over a "perfect" infinite world):
   the card `Panel`; pause-on-open and centred-card behaviour are
   untouched. Only existing palette hexes are used — no grey slab, no
   sixth colour.
+- **End panel flat slab → soot vignette wash (Shade note):** `EndPanel`
+  (death/clear) now mirrors that same `Dim`/`Vignette` structure instead
+  of its old flat `Dim` fill — a low-alpha rot (`#2D1F18`) base wash under
+  a radial `GradientTexture2D` (soot `#1A1410`, alpha ramping from ~0.35
+  at centre to ~0.96 at the corners), tuned very slightly darker at the
+  edges than the bargain modal's to keep the same heavier end-of-run
+  weight the old flat slab had. Title + **Again** button behaviour and
+  the locked `Copy.DEATH_TITLE` / `Copy.CLEAR_TITLE` / `Copy.CTA_AGAIN`
+  copy are untouched; only existing palette hexes are used.
 - **Fog un-glued from the player (playtest fix):** `World.gd` no longer
   sets `fog.global_position = player.global_position` every frame — that
   made the fog `Polygon2D` clouds read as a personal light pool glued to
