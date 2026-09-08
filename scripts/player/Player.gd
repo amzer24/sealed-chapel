@@ -69,6 +69,15 @@ func _fire_at(target: Node2D) -> void:
 	projectile.global_position = global_position
 	projectile.launch((target.global_position - global_position).normalized(), attack_damage)
 
+## Restores health without moving the `max_health` ceiling -- the Heart
+## pickup's heal. Distinct from `apply_upgrade_stat`'s "max_health" case,
+## which shifts the ceiling itself rather than just refilling under it.
+func heal(amount: float) -> void:
+	if health <= 0.0:
+		return
+	health = clampf(health + amount, 0.0, max_health)
+	Game.update_health(health, max_health)
+
 func take_damage(amount: float) -> void:
 	if health <= 0.0:
 		return
