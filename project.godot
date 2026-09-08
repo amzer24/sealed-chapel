@@ -13,7 +13,7 @@ config_version=5
 config/name="Sealed Chapel"
 config/description="Curse Arena prototype: a Grimm fairy-tale survivors roam through haunted wood and ruined chapel grounds."
 run/main_scene="res://scenes/main/Main.tscn"
-config/features=PackedStringArray("4.3")
+config/features=PackedStringArray("4.7")
 config/icon="res://icon.svg"
 
 [autoload]

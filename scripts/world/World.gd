@@ -61,13 +61,6 @@ func _ready() -> void:
 	chunk_timer.timeout.connect(_on_chunk_timer_timeout)
 	chunk_timer.start()
 
-func _process(_delta: float) -> void:
-	# Fog is atmosphere, not a level feature: keep it centred on the player
-	# so it drifts overhead everywhere in the endless roam, not just near
-	# the start.
-	if player:
-		fog.global_position = player.global_position
-
 # ---------------------------------------------------------------------------
 # Shared procedural ground atlas -- built once and reused by every chunk's
 # TileMap so we never pay the texture-generation cost more than once.
@@ -120,6 +113,13 @@ func _update_chunks(force: bool) -> void:
 	if not force and center == _player_chunk and not _loaded_chunks.is_empty():
 		return
 	_player_chunk = center
+
+	# Fog is atmosphere, not a spotlight on the player: it only re-anchors
+	# to the origin of the player's current chunk (a discrete jump on chunk
+	# crossings, matching the authored cloud layout at world origin), so it
+	# stays put in world space while the player wanders within a chunk, and
+	# Fog.gd's own local drift still applies on top.
+	fog.global_position = Vector2(center) * CHUNK_PIXELS
 
 	for x in range(center.x - LOAD_RADIUS, center.x + LOAD_RADIUS + 1):
 		for y in range(center.y - LOAD_RADIUS, center.y + LOAD_RADIUS + 1):

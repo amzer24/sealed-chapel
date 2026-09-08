@@ -16,7 +16,7 @@ ruin) ever forms a closed loop, in any chunk.
 
 ## Opening the project
 
-1. Install **Godot 4.x** (built and tested against 4.3 stable; any 4.x
+1. Install **Godot 4.x** (built and tested against 4.7.2 stable; any 4.x
    engine build should work since only stable, long-standing APIs are used).
 2. Launch Godot, choose **Import**, and select this repository's
    `project.godot`.
@@ -112,7 +112,7 @@ reference collision shapes and node paths that would remain unchanged.
 ## Project layout
 
 ```
-project.godot              Engine config (Godot 4.x, GL Compatibility renderer)
+project.godot              Engine config (Godot 4.7, GL Compatibility renderer)
 scenes/
   main/Main.tscn            Composition root: World + HUD + BargainModal + EndPanel
   world/World.tscn           The roam: Ground/YSort/Fog layers, spawn + chunk timers
@@ -190,6 +190,20 @@ generator, on purpose (a simple streamer over a "perfect" infinite world):
   the card `Panel`; pause-on-open and centred-card behaviour are
   untouched. Only existing palette hexes are used — no grey slab, no
   sixth colour.
+- **Fog un-glued from the player (playtest fix):** `World.gd` no longer
+  sets `fog.global_position = player.global_position` every frame — that
+  made the fog `Polygon2D` clouds read as a personal light pool glued to
+  the player instead of ambient atmosphere. Fog now only re-anchors, in a
+  discrete jump, to the origin of the player's current chunk when the
+  player crosses into a new chunk, so it stays fixed in world space while
+  the player wanders within a chunk (`Fog.gd`'s own slow local drift is
+  unchanged and still layers on top). Fog is still not a child of
+  `Player`.
+- **Engine bump to 4.7 (playtest fix):** `project.godot`'s
+  `config/features` now reports `4.7` (tested against 4.7.2 stable)
+  instead of `4.3`. No renderer or API changes were needed — the
+  `gl_compatibility` renderer and all existing GDScript APIs are
+  unaffected — so this is a version-label bump only.
 - `Game` and `UITheme` are the only autoloads; everything else is composed
   through normal scene instancing (`Main.tscn` instances `World`, `HUD`,
   `BargainModal`, `EndPanel` as siblings).
