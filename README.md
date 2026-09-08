@@ -44,7 +44,10 @@ No external asset import step is required — see [Placeholder art](#placeholder
   There is no wall and no camera/position clamp anywhere — the player can
   walk in one direction indefinitely and new wood keeps streaming in.
 - **Player** — move + automatic attack (nearest-enemy targeting, simple
-  projectile) via `scripts/player/Player.gd`.
+  projectile) via `scripts/player/Player.gd`, plus a passive clear-tool
+  aura (`scripts/player/Aura.gd`) that periodically ticks soft damage to
+  every enemy inside its radius — no orbit/MultiMesh weapon, just a thin
+  hard-edged ring. `LONGER_SHADOW` grows the aura's radius.
 - **Two enemy types ("Crawler" and "Wraith")** — both shamble toward the
   player and deal contact damage; both die to the player's auto-attack and
   drop an XP pickup. They share one behaviour script
@@ -152,7 +155,7 @@ project.godot              Engine config (Godot 4.7, GL Compatibility renderer)
 scenes/
   main/Main.tscn            Composition root: World + HUD + BargainModal + EndPanel
   world/World.tscn           The roam: Ground/YSort/Fog layers, spawn + chunk timers
-  player/                    Player + auto-attack Projectile
+  player/                    Player + auto-attack Projectile + clear-tool Aura
   enemies/                   Crawler + Wraith mobs (share scripts/enemies/Enemy.gd)
   pickups/                   XP orb
   props/                     Dead tree, chapel ruin, iron fence, candles, shrine
@@ -395,3 +398,43 @@ generator, on purpose (a simple streamer over a "perfect" infinite world):
   no runtime errors, plus a byte-level diff-check that every relocked
   `Copy.gd` string (including the Unicode minus signs) matches the locked
   text exactly.
+- **Clear-tool aura + `LONGER_SHADOW` remap + softer mid-run density (this
+  pass):** the player gets a passive clear tool for late-run blobs instead
+  of a fourth hard weapon — a new `Aura` `Area2D` (`scripts/player/
+  Aura.gd`, a child of `Player.tscn`) that periodically ticks a small
+  amount of soft DPS (`Aura.damage`, default 3.0 every `Aura.
+  tick_interval`, default 0.6s) to every enemy overlapping its
+  `CollisionShape2D`, hard nearest-neighbour targeting via `get_
+  overlapping_bodies()` (same collision-layer convention `Projectile.gd`
+  already uses to hit the enemy layer). No orbit/MultiMesh weapon: the
+  only visual is a thin, non-antialiased curse-gold ring drawn in `Aura.
+  _draw()` at the current radius, so it reads as a hard-pixel readout of
+  the clear zone rather than a VFX glow — still only the five locked
+  hexes. `LONGER_SHADOW` is remapped from bumping `attack_range` to
+  bumping this aura's radius instead (`Player.aura_radius`, default 56.0,
+  +40 per pick via a new `Player.apply_upgrade_stat` "aura_radius" case
+  that also resizes the live `CollisionShape2D` so a stacked pick visibly
+  widens the ring immediately) — the projectile's own `attack_range` is
+  untouched, per the brief's steer toward the aura as the player-facing
+  effect. Copy is relocked to match exactly:
+  `Copy.LONGER_SHADOW` → `"Clear aura grows wider (+40).\nYour reach
+  grows."` and `Copy.TICK_LONGER_SHADOW` → `"+clear"`; every other bargain/
+  tick string is untouched. Separately, `World.gd`'s mid-run spawn density
+  is softened by a number tweak only (no new enemy types): `spawn_
+  interval_min` raised `0.55` → `0.65` (the fastest the spawn timer can
+  ramp down to) and the per-wave enemy-count growth divisor (`_spawn_
+  wave`'s `1 + int(Game.elapsed / N)`) raised `22.0` → `28.0` (now a named
+  `WAVE_SIZE_RAMP_SECONDS` const) so wave size climbs a little slower —
+  together these two loosen the late-run "brick wall" where spawn rate and
+  wave size both peaked at once, giving the new aura more room to keep up.
+  Verified headlessly with a temporary harness scene (not committed) that
+  instanced a real `Player` + `Crawler` outside the editor: confirmed a
+  stationary Crawler's health ticks down under the aura alone (attack
+  damage zeroed out to isolate it), confirmed `apply_upgrade_stat
+  ("aura_radius", 40.0)` grows both `Player.aura_radius` and the live
+  `CollisionShape2D` radius by exactly 40, and confirmed the relocked
+  `Copy` strings and `Game.UPGRADE_POOL`'s `longer_shadow` entry both
+  read back exactly as above. Also re-ran the plain `Main.tscn` headlessly
+  (`--quit-after 300`) with no runtime errors. Out of scope per the brief:
+  orbit garlic sprites, MultiMesh, regen, lifesteal, multi-shot, new enemy
+  types, and any TileMapLayer/ground changes.
