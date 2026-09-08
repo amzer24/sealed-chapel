@@ -15,4 +15,5 @@ script = ExtResource("1")
 shape = SubResource("CircleShape2D_1")
 
 [node name="Gem" type="Sprite2D" parent="."]
+texture_filter = 1
 texture = ExtResource("2")
