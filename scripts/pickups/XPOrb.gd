@@ -1,6 +1,6 @@
 extends Area2D
 
-## XP pickup dropped by dead blobs. Drifts toward the player once inside
+## XP pickup dropped by dead enemies. Drifts toward the player once inside
 ## their pickup radius (a simple magnet), then grants XP on contact.
 
 @export var value := 4.0
@@ -30,7 +30,7 @@ func _physics_process(delta: float) -> void:
 
 ## Actual removal is deferred to `_process` (outside the physics step) to
 ## avoid racing the physics server's query flush the same way projectiles
-## and blobs do.
+## and enemies do.
 func _process(_delta: float) -> void:
 	if _collected:
 		queue_free()

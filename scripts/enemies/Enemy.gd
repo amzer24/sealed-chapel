@@ -1,8 +1,9 @@
 extends CharacterBody2D
 
-## A single blob mob type: shambles straight at the player and deals contact
+## Shared mob behaviour: shambles straight at the player and deals contact
 ## damage on an interval while overlapping. Dies to player projectiles and
-## drops an XP pickup.
+## drops an XP pickup. `Crawler.tscn` and `Wraith.tscn` both use this script,
+## differing only in their exported stats and their visual/collision size.
 
 @export var max_health := 16.0
 @export var move_speed := 52.0

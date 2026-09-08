@@ -44,11 +44,16 @@ No external asset import step is required — see [Placeholder art](#placeholder
   walk in one direction indefinitely and new wood keeps streaming in.
 - **Player** — move + automatic attack (nearest-enemy targeting, simple
   projectile) via `scripts/player/Player.gd`.
-- **One enemy type ("Blob")** — shambles toward the player and deals contact
-  damage; dies to the player's auto-attack and drops an XP pickup.
-  `scripts/enemies/Blob.gd`.
+- **Two enemy types ("Crawler" and "Wraith")** — both shamble toward the
+  player and deal contact damage; both die to the player's auto-attack and
+  drop an XP pickup. They share one behaviour script
+  (`scripts/enemies/Enemy.gd`) and differ only in their exported stats and
+  their `Crawler.tscn` / `Wraith.tscn` visual + collision size — a Crawler
+  is a low multi-leg skulker, a Wraith is a taller, faster flame-tipped
+  wisp with less health.
 - **Waves** — a simple spawner (`scripts/world/World.gd`) that spawns more
-  blobs, more often, the longer the run goes.
+  enemies (mostly Crawlers, a rarer chance of a Wraith), more often, the
+  longer the run goes.
 - **Curse bargain (level-up)** — collecting enough XP opens three curse
   cards centred as a modal over a **dimmed, paused** playfield; picking one
   applies the upgrade and resumes combat. Diegetic panel/button styling only
@@ -91,23 +96,27 @@ No external asset import step is required — see [Placeholder art](#placeholder
 
 ## Placeholder art & where real sheets will land
 
-Every visual in the Prototype is a simple coloured `Polygon2D`/`ColorRect`
-shape generated in-editor (no imported textures except the project icon),
-so the project has zero binary art dependencies and opens cleanly on any
-machine. Approximate on-screen sizes match the brief:
+The player, both mobs and the XP pickup are small procedurally-painted PNG
+sprites under `assets/sprites/` (`Sprite2D` nodes), sized and silhouetted to
+read clearly at 1× survivors zoom; the bargain shrine landmark is still a
+`Polygon2D` placeholder. Every placeholder pulls only from the locked
+five-hex palette (soot/bone/bruise/curse/rot) — no sixth colour, no
+multi-resolution art packs. Approximate on-screen sizes match the brief:
 
 | Element              | Scene                                | Size (approx.) |
 |-----------------------|---------------------------------------|-----------------|
-| Player                | `scenes/player/Player.tscn`           | ~24×24 |
-| Blob (mob)            | `scenes/enemies/Blob.tscn`            | ~20×20 |
-| XP pickup             | `scenes/pickups/XPOrb.tscn`           | ~12×12 |
+| Player (hooded last-soul) | `scenes/player/Player.tscn`       | ~24×24 |
+| Crawler (low multi-leg mob) | `scenes/enemies/Crawler.tscn`   | ~20×20 |
+| Wraith (tall flame-tip mob) | `scenes/enemies/Wraith.tscn`    | ~20×20 |
+| XP pickup (curse orb) | `scenes/pickups/XPOrb.tscn`           | ~12×12 |
 | Bargain shrine (landmark) | `scenes/props/PropBargainShrine.tscn` | ~48×64 |
 
-When real art is ready, drop sprite sheets under `assets/sprites/` (folders
-already scaffolded for `player/`, `enemies/`, `pickups/`, `props/`) and swap
-the placeholder `Polygon2D`/`ColorRect` visual children in each scene for a
-`Sprite2D`/`AnimatedSprite2D` at the same scale — the gameplay scripts only
-reference collision shapes and node paths that would remain unchanged.
+When real art is ready, drop sprite sheets over the placeholder PNGs under
+`assets/sprites/` (folders already scaffolded for `player/`, `enemies/`,
+`pickups/`, `props/`) and swap the `Sprite2D`/`Polygon2D` visual children
+for `AnimatedSprite2D` where animation is needed — the gameplay scripts
+only reference collision shapes and node paths that would remain
+unchanged.
 
 ## Project layout
 
@@ -117,7 +126,7 @@ scenes/
   main/Main.tscn            Composition root: World + HUD + BargainModal + EndPanel
   world/World.tscn           The roam: Ground/YSort/Fog layers, spawn + chunk timers
   player/                    Player + auto-attack Projectile
-  enemies/                   Blob mob
+  enemies/                   Crawler + Wraith mobs (share scripts/enemies/Enemy.gd)
   pickups/                   XP orb
   props/                     Dead tree, chapel ruin, iron fence, candles, shrine
   ui/                        HUD, bargain modal + card, end panel
@@ -213,6 +222,24 @@ generator, on purpose (a simple streamer over a "perfect" infinite world):
   instead of `4.3`. No renderer or API changes were needed — the
   `gl_compatibility` renderer and all existing GDScript APIs are
   unaffected — so this is a version-label bump only.
+- **Readable cast + NinePatch bargain cards (this pass):** the single
+  Blob mob is replaced by two readable silhouettes — `Crawler.tscn` (low
+  multi-leg skulker) and `Wraith.tscn` (taller, flame-tipped, faster,
+  squishier) — both driven by the same `scripts/enemies/Enemy.gd`, and
+  `World.gd`'s spawn pool now rolls Crawler-or-Wraith per spawn
+  (`WRAITH_CHANCE`) instead of a single mob. The player and the XP pickup
+  are now small PNG `Sprite2D`s too (hooded last-soul silhouette; curse-gold
+  orb), all under `assets/sprites/`, all pulling only from the locked five
+  hexes. `BargainCard` swaps its `StyleBoxFlat` Button theme for a
+  `NinePatchRect` frame (`assets/ui/bargain_card_frame.png`: bone outline /
+  soot fill / bruise thorn corners) — the Button's own normal/hover/
+  pressed/focus styles are emptied out in the scene so the frame art is all
+  that paints, with a small hover brighten on the frame's `modulate` to
+  keep pointer feedback. A curse-gold pip (`assets/ui/curse_pip.png`) shows
+  only on the one card whose icon colour is already curse-gold (`longer_
+  shadow`), so it stays a highlight rather than inventing a fourth swatch.
+  The bargain shrine landmark, `Game`'s bargain flow, `Copy.gd` and the
+  modal's pause/vignette behaviour are all untouched.
 - `Game` and `UITheme` are the only autoloads; everything else is composed
   through normal scene instancing (`Main.tscn` instances `World`, `HUD`,
   `BargainModal`, `EndPanel` as siblings).
@@ -224,4 +251,8 @@ generator, on purpose (a simple streamer over a "perfect" infinite world):
   bargain-pick cycles, and a scripted walk of 3000+ pixels to confirm the
   chunk streamer loads/unloads correctly and stays memory-bounded (loaded
   chunk count plateaus rather than growing unbounded) — no runtime errors
-  in any of it.
+  in any of it. This pass re-ran that smoke test (Godot 4.3 headless, both
+  a plain multi-minute run and Crawler/Wraith spawning + combat + a
+  bargain pick) plus an offscreen `--rendering-driver opengl3` capture of
+  the new sprites at 1× and the NinePatch bargain modal to confirm the
+  cast and cards read correctly — no runtime errors in either.

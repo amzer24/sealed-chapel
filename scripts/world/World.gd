@@ -21,7 +21,10 @@ const KEEP_RADIUS := 2
 const CHUNK_CHECK_INTERVAL := 0.35
 
 const PLAYER_SCENE := preload("res://scenes/player/Player.tscn")
-const ENEMY_SCENE := preload("res://scenes/enemies/Blob.tscn")
+const CRAWLER_SCENE := preload("res://scenes/enemies/Crawler.tscn")
+const WRAITH_SCENE := preload("res://scenes/enemies/Wraith.tscn")
+## Wraiths are rarer than crawlers so the readable cast stays crawler-led.
+const WRAITH_CHANCE := 0.3
 const PROP_DEAD_TREE := preload("res://scenes/props/PropDeadTree.tscn")
 const PROP_CHAPEL_RUIN := preload("res://scenes/props/PropChapelRuin.tscn")
 const PROP_IRON_FENCE := preload("res://scenes/props/PropIronFence.tscn")
@@ -250,7 +253,8 @@ func _spawn_wave() -> void:
 func _spawn_enemy() -> void:
 	if not player:
 		return
-	var enemy := ENEMY_SCENE.instantiate()
+	var scene := WRAITH_SCENE if randf() < WRAITH_CHANCE else CRAWLER_SCENE
+	var enemy := scene.instantiate()
 	ysort.add_child(enemy)
 	enemy.global_position = _random_spawn_point_around_player()
 
