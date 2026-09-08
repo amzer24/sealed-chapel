@@ -11,6 +11,12 @@ extends CharacterBody2D
 @export var contact_interval := 0.7
 @export var xp_value := 4.0
 
+## A dead enemy's Heart (when it drops one) is scattered a random distance
+## in this range from the XP pickup spawned at the same `global_position`,
+## so the two never render stacked on top of each other.
+const HEART_SCATTER_MIN := 12.0
+const HEART_SCATTER_MAX := 18.0
+
 var health: float
 var _target: Player
 var _touching_player := false
@@ -57,11 +63,16 @@ func take_damage(amount: float) -> void:
 
 func _on_death() -> void:
 	Game.spawn_xp_pickup(global_position, xp_value)
-	# Rarer than the XP drop, and nudged aside so the two pickups don't
+	# Rarer than the XP drop, and scattered aside so the two pickups don't
 	# spawn stacked exactly on top of each other.
 	if randf() < Game.HEART_DROP_CHANCE:
-		Game.spawn_heart_pickup(global_position + Vector2(0.0, -8.0))
+		Game.spawn_heart_pickup(global_position + _heart_scatter_offset())
 	Game.enemy_defeated()
+
+func _heart_scatter_offset() -> Vector2:
+	var angle := randf() * TAU
+	var dist := randf_range(HEART_SCATTER_MIN, HEART_SCATTER_MAX)
+	return Vector2(cos(angle), sin(angle)) * dist
 
 func _on_attack_area_body_entered(body: Node) -> void:
 	if body.is_in_group("player"):

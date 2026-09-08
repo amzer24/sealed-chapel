@@ -3,7 +3,10 @@ extends Area2D
 ## HP pickup dropped rarely by dead enemies (see `Game.HEART_DROP_CHANCE`).
 ## Sibling to `XPOrb.gd` -- same drift-then-collect behaviour -- but mute:
 ## unlike XP (and unlike a struck bargain), collecting a Heart shows no
-## floating label, just the heal.
+## floating label, just the heal. `z_index = 1` (set on the scene's root
+## node in `Heart.tscn`) keeps it drawn above XP orbs on the world's
+## Y-sorted layer when the two land at the same on-screen height, so a
+## rare Heart never gets buried under a stack of common XP gems.
 
 @export var heal_amount := 22.0
 
