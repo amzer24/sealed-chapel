@@ -57,6 +57,10 @@ func take_damage(amount: float) -> void:
 
 func _on_death() -> void:
 	Game.spawn_xp_pickup(global_position, xp_value)
+	# Rarer than the XP drop, and nudged aside so the two pickups don't
+	# spawn stacked exactly on top of each other.
+	if randf() < Game.HEART_DROP_CHANCE:
+		Game.spawn_heart_pickup(global_position + Vector2(0.0, -8.0))
 	Game.enemy_defeated()
 
 func _on_attack_area_body_entered(body: Node) -> void:

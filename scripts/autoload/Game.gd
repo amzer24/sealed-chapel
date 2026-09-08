@@ -23,27 +23,77 @@ const BASE_XP_TO_LEVEL := 10.0
 const XP_GROWTH := 1.35
 
 const XP_ORB_SCENE := preload("res://scenes/pickups/XPOrb.tscn")
+const HEART_SCENE := preload("res://scenes/pickups/Heart.tscn")
+## Hearts are a rarer drop than XP orbs -- most enemy deaths only drop XP.
+const HEART_DROP_CHANCE := 0.12
 
-## The three studio-locked curse bargains. Each can be struck once per run;
-## once all three are spent, later level-ups offer `Copy.BARGAIN_EMPTY`
-## instead of cards.
+## The seven stackable bargain commons. Every id is repeatable: the same
+## bargain can be offered and struck again in a later level-up (there is
+## no once-per-run gate). Each card is tagged "bless" (pure gain) or
+## "curse" (gain paid for with a `max_health` cost) so `_build_offer` can
+## keep an offer from reading as three of a kind.
 const UPGRADE_POOL := [
 	{
 		"id": "longer_shadow",
 		"title": Copy.LONGER_SHADOW,
+		"tick": Copy.TICK_LONGER_SHADOW,
+		"tag": "bless",
 		"effects": [{"stat": "attack_range", "amount": 40.0}],
 	},
 	{
 		"id": "fever_pulse",
 		"title": Copy.FEVER_PULSE,
+		"tick": Copy.TICK_FEVER_PULSE,
+		"tag": "bless",
 		"effects": [{"stat": "attack_speed", "amount": 0.12}],
 	},
 	{
 		"id": "tithe_of_flesh",
 		"title": Copy.TITHE_OF_FLESH,
+		"tick": Copy.TICK_TITHE_OF_FLESH,
+		"tag": "curse",
 		"effects": [{"stat": "damage", "amount": 6.0}, {"stat": "max_health", "amount": -10.0}],
 	},
+	{
+		"id": "bone_ward",
+		"title": Copy.BONE_WARD,
+		"tick": Copy.TICK_BONE_WARD,
+		"tag": "bless",
+		# `apply_upgrade_stat`'s "max_health" case already tops up current
+		# health by the same positive delta and floors at 1.0, so a bargain
+		# can never be the cause of death -- no extra heal-helper call
+		# needed here.
+		"effects": [{"stat": "max_health", "amount": 20.0}],
+	},
+	{
+		"id": "greedy_hands",
+		"title": Copy.GREEDY_HANDS,
+		"tick": Copy.TICK_GREEDY_HANDS,
+		"tag": "bless",
+		"effects": [{"stat": "pickup_radius", "amount": 18.0}],
+	},
+	{
+		"id": "glass_bell",
+		"title": Copy.GLASS_BELL,
+		"tick": Copy.TICK_GLASS_BELL,
+		"tag": "curse",
+		"effects": [{"stat": "move_speed", "amount": 18.0}, {"stat": "max_health", "amount": -10.0}],
+	},
+	{
+		"id": "heavy_hand",
+		"title": Copy.HEAVY_HAND,
+		"tick": Copy.TICK_HEAVY_HAND,
+		"tag": "bless",
+		"effects": [{"stat": "damage", "amount": 4.0}],
+	},
 ]
+
+const OFFER_SIZE := 3
+## Cap on how many cards of the same bless/curse tag one offer may contain,
+## so a level-up prefers a mixed offer over three of a kind. The pool has
+## more blesses than curses, so this is what keeps an all-bless offer from
+## being the common case.
+const MAX_OFFER_PER_TAG := 2
 
 var state: State = State.PLAYING
 var elapsed := 0.0
@@ -51,8 +101,9 @@ var level := 1
 var xp := 0.0
 var xp_to_next := BASE_XP_TO_LEVEL
 var enemies_defeated := 0
-## Order the player accepted bargains in this run. Kept for a future replay
-## seed; the prototype does not consume it yet.
+## Order the player accepted bargains in this run. All seven bargains are
+## stackable now (no once-per-run gate reads this), so it is kept purely as
+## a future replay seed; the prototype does not consume it yet.
 var bargain_history: Array[String] = []
 
 var _player: Player = null
@@ -97,10 +148,38 @@ func _trigger_bargain() -> void:
 	# immediately (resuming play) must win over this pause, not the other
 	# way around.
 	get_tree().paused = true
-	var available: Array = UPGRADE_POOL.filter(func(card: Dictionary) -> bool:
-		return not bargain_history.has(card.id)
-	)
-	bargain_offered.emit(available)
+	bargain_offered.emit(_build_offer())
+
+## Builds an `OFFER_SIZE`-card offer from the full stackable pool, capping
+## how many cards share a tag at `MAX_OFFER_PER_TAG` so the offer prefers a
+## bless/curse mix over three of a kind. Every id can reappear across
+## offers (and be struck more than once in a run) since there is no
+## once-only history gate.
+func _build_offer() -> Array:
+	var shuffled: Array = UPGRADE_POOL.duplicate()
+	shuffled.shuffle()
+
+	var offer: Array = []
+	var tag_counts: Dictionary = {}
+	for card: Dictionary in shuffled:
+		if offer.size() >= OFFER_SIZE:
+			break
+		var tag: String = card.tag
+		if tag_counts.get(tag, 0) >= MAX_OFFER_PER_TAG:
+			continue
+		offer.append(card)
+		tag_counts[tag] = tag_counts.get(tag, 0) + 1
+
+	# Defensive top-up: only reachable if the pool's tag composition ever
+	# shrinks enough that the per-tag cap alone can't fill `OFFER_SIZE`.
+	if offer.size() < OFFER_SIZE:
+		for card: Dictionary in shuffled:
+			if offer.size() >= OFFER_SIZE:
+				break
+			if not offer.has(card):
+				offer.append(card)
+
+	return offer
 
 func choose_bargain(card: Dictionary) -> void:
 	bargain_history.append(card.id)
@@ -109,8 +188,10 @@ func choose_bargain(card: Dictionary) -> void:
 			_player.apply_upgrade_stat(effect.stat, effect.amount)
 	_resume_from_bargain()
 
-## Called when the bargain pool is spent (`Copy.BARGAIN_EMPTY` was shown)
-## and the modal auto-dismisses; there is nothing to apply, just resume.
+## The seven-card pool never empties (every id is stackable), so this is
+## only a defensive fallback for the case `bargain_offered` somehow emits
+## zero cards; `BargainModal.gd` shows `Copy.BARGAIN_EMPTY` and calls this
+## on auto-dismiss.
 func dismiss_empty_bargain() -> void:
 	_resume_from_bargain()
 
@@ -133,6 +214,13 @@ func spawn_xp_pickup(pos: Vector2, value: float) -> void:
 	_world_container.add_child(orb)
 	orb.global_position = pos
 	orb.value = value
+
+func spawn_heart_pickup(pos: Vector2) -> void:
+	if not _world_container:
+		return
+	var heart := HEART_SCENE.instantiate()
+	_world_container.add_child(heart)
+	heart.global_position = pos
 
 func _end_run(win: bool) -> void:
 	state = State.CLEARED if win else State.DEAD
