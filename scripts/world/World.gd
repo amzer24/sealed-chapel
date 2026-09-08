@@ -31,6 +31,11 @@ const PROP_IRON_FENCE := preload("res://scenes/props/PropIronFence.tscn")
 const PROP_CANDLE_CLUSTER := preload("res://scenes/props/PropCandleCluster.tscn")
 const PROP_BARGAIN_SHRINE := preload("res://scenes/props/PropBargainShrine.tscn")
 
+## Quiet peat ground atlas: 3 density variants (sparse/mid/packed) laid out
+## left-to-right, five-hex palette only. See assets/tiles/ for the source.
+const GROUND_ATLAS := preload("res://assets/tiles/peat_atlas.png")
+const GROUND_VARIANT_COUNT := 3
+
 @export var spawn_interval_start := 2.2
 @export var spawn_interval_min := 0.55
 @export var spawn_ramp_time := 100.0
@@ -45,7 +50,7 @@ var player: Player
 
 var _ground_tile_set: TileSet
 var _ground_source_id := 0
-## Vector2i chunk coord -> {"tile_map": TileMap, "props": Array[Node2D]}
+## Vector2i chunk coord -> {"tile_map": TileMapLayer, "props": Array[Node2D]}
 var _loaded_chunks: Dictionary = {}
 var _player_chunk := Vector2i.ZERO
 
@@ -65,33 +70,17 @@ func _ready() -> void:
 	chunk_timer.start()
 
 # ---------------------------------------------------------------------------
-# Shared procedural ground atlas -- built once and reused by every chunk's
-# TileMap so we never pay the texture-generation cost more than once.
+# Shared ground tile set -- wraps the authored peat atlas PNG once and reuses
+# it for every chunk's TileMapLayer, so the texture is only loaded once.
 # ---------------------------------------------------------------------------
 
 func _build_shared_ground_tile_set() -> void:
-	var variants := [Palette.SOOT, Palette.ROT, Palette.BRUISE, Palette.CURSE]
-	var atlas_image := Image.create(TILE_SIZE * variants.size(), TILE_SIZE, false, Image.FORMAT_RGB8)
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 1337
-	for v in variants.size():
-		var base: Color = variants[v]
-		for x in TILE_SIZE:
-			for y in TILE_SIZE:
-				var flicker := rng.randf_range(-0.04, 0.04)
-				var c := Color(
-					clampf(base.r + flicker, 0.0, 1.0),
-					clampf(base.g + flicker, 0.0, 1.0),
-					clampf(base.b + flicker, 0.0, 1.0)
-				)
-				atlas_image.set_pixel(v * TILE_SIZE + x, y, c)
-
 	var tile_set := TileSet.new()
 	tile_set.tile_size = Vector2i(TILE_SIZE, TILE_SIZE)
 	var source := TileSetAtlasSource.new()
-	source.texture = ImageTexture.create_from_image(atlas_image)
+	source.texture = GROUND_ATLAS
 	source.texture_region_size = Vector2i(TILE_SIZE, TILE_SIZE)
-	for v in variants.size():
+	for v in GROUND_VARIANT_COUNT:
 		source.create_tile(Vector2i(v, 0))
 	_ground_source_id = tile_set.add_source(source)
 	_ground_tile_set = tile_set
@@ -137,14 +126,17 @@ func _update_chunks(force: bool) -> void:
 func _load_chunk(coord: Vector2i) -> void:
 	var origin := Vector2(coord) * CHUNK_PIXELS
 
-	var tile_map := TileMap.new()
-	tile_map.tile_set = _ground_tile_set
-	tile_map.position = origin
-	ground.add_child(tile_map)
-	_paint_chunk_ground(tile_map, coord)
+	var tile_map_layer := TileMapLayer.new()
+	tile_map_layer.tile_set = _ground_tile_set
+	tile_map_layer.position = origin
+	# Keep the peat atlas crisp at survivors zoom instead of blurring under
+	# the default linear filter (matches the cast's nearest-filter wiring).
+	tile_map_layer.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	ground.add_child(tile_map_layer)
+	_paint_chunk_ground(tile_map_layer, coord)
 
 	_loaded_chunks[coord] = {
-		"tile_map": tile_map,
+		"tile_map": tile_map_layer,
 		"props": _scatter_chunk_dressing(coord, origin),
 	}
 
@@ -156,21 +148,24 @@ func _unload_chunk(coord: Vector2i) -> void:
 			prop.queue_free()
 	_loaded_chunks.erase(coord)
 
-func _paint_chunk_ground(tile_map: TileMap, coord: Vector2i) -> void:
+## Sparse is the common case so the floor stays quiet overall; mid and
+## packed break up the repetition without ever reading as a busy block.
+const GROUND_WEIGHTS := [60, 30, 10]
+
+func _paint_chunk_ground(tile_map_layer: TileMapLayer, coord: Vector2i) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = _chunk_seed(coord, 0)
-	var weights := [70, 18, 8, 4]
 	for x in CHUNK_TILES:
 		for y in CHUNK_TILES:
 			var roll := rng.randi_range(0, 99)
 			var variant := 0
 			var acc := 0
-			for i in weights.size():
-				acc += weights[i]
+			for i in GROUND_WEIGHTS.size():
+				acc += GROUND_WEIGHTS[i]
 				if roll < acc:
 					variant = i
 					break
-			tile_map.set_cell(0, Vector2i(x, y), _ground_source_id, Vector2i(variant, 0))
+			tile_map_layer.set_cell(Vector2i(x, y), _ground_source_id, Vector2i(variant, 0))
 
 ## Deterministic integer hash so a chunk always regenerates the same ground
 ## and dressing when revisited, without needing to store it while unloaded.
