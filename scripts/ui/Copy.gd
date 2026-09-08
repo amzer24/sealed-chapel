@@ -15,7 +15,7 @@ const CTA_AGAIN := "Again"
 ## UPGRADE_POOL`), the second is the short Grimm line. Uses the Unicode
 ## minus sign (−, not a hyphen) wherever a stat is reduced, to match the
 ## lock exactly. Do not paraphrase or substitute these strings.
-const LONGER_SHADOW := "Attack range +40.\nYour reach grows."
+const LONGER_SHADOW := "Clear aura grows wider (+40).\nYour reach grows."
 const FEVER_PULSE := "Time between strikes −0.12s.\nThe fever rises."
 const TITHE_OF_FLESH := "Damage +6. Max HP −10.\nBleed for a heavier hand."
 const BONE_WARD := "Max HP +20. Current HP rises by the same.\nBone holds."
@@ -28,7 +28,7 @@ const HEAVY_HAND := "Damage +4. No HP cost.\nHarder blows. Flesh stays."
 ## bargain is struck. Do not paraphrase -- these are intentionally terse.
 ## Uses the Unicode minus sign (−, not a hyphen) to match the lock exactly.
 ## The Heart pickup has no tick; it is mute by design.
-const TICK_LONGER_SHADOW := "+range"
+const TICK_LONGER_SHADOW := "+clear"
 const TICK_FEVER_PULSE := "+rate"
 const TICK_TITHE_OF_FLESH := "+dmg −HP"
 const TICK_BONE_WARD := "+HP"
