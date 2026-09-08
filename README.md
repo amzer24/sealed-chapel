@@ -70,8 +70,8 @@ No external asset import step is required — see [Placeholder art](#placeholder
     shows on whichever cards are tagged `"curse"` (the two that pay their
     gain with a `max_health` cost), not a fixed id.
   - **Pick juice** — striking a bargain plays a brief bone-coloured screen
-    flash plus a floating tick label (`Copy.TICK_*`, e.g. `+reach`,
-    `+might −flesh`) over the just-resumed playfield, then the modal fully
+    flash plus a floating tick label (`Copy.TICK_*`, e.g. `+range`,
+    `+dmg −HP`) over the just-resumed playfield, then the modal fully
     hides again (`BargainModal._play_pick_juice`).
 - **Heart pickup** — a mute HP pickup (`scripts/pickups/Heart.gd`,
   `assets/sprites/pickups/heart.png`), sibling to the XP orb: same
@@ -80,6 +80,12 @@ No external asset import step is required — see [Placeholder art](#placeholder
   `Player.heal`, which tops up current HP without moving the `max_health`
   ceiling. Dropped rarely from enemy deaths (`Game.HEART_DROP_CHANCE`,
   rarer than the XP drop).
+- **Curse intro** — a one-shot diegetic card (`scripts/ui/CurseIntro.gd`,
+  `scenes/ui/CurseIntro.tscn`) explains what the HUD's Curse counter means
+  before the player's very first run. It pauses the tree exactly like the
+  bargain modal does (nothing spawns or ticks) until **Begin** is pressed,
+  then never shows again for that save — a flag persists to a small
+  `ConfigFile` under `user://save.cfg`.
 - **End states** — death (overrun) or a timed clear both show a themed panel
   (not the default engine dialog) with a short Grimm line and an **Again**
   button that restarts the run. `scripts/ui/EndPanel.gd`.
@@ -150,7 +156,7 @@ scenes/
   enemies/                   Crawler + Wraith mobs (share scripts/enemies/Enemy.gd)
   pickups/                   XP orb
   props/                     Dead tree, chapel ruin, iron fence, candles, shrine
-  ui/                        HUD, bargain modal + card, end panel
+  ui/                        HUD, bargain modal + card, end panel, Curse intro
 scripts/
   autoload/Game.gd           Run state: timer, XP/level curve, bargain flow, win/lose
   autoload/UITheme.gd        Builds the one shared diegetic Theme in code
@@ -355,3 +361,37 @@ generator, on purpose (a simple streamer over a "perfect" infinite world):
   lifesteal, multi-shot, rarity tiers, and any stat beyond
   `attack_range`/`attack_speed`/`damage`/`max_health`/`move_speed`/
   `pickup_radius`.
+- **Effect-first bargain copy + Curse intro card (this pass):** every
+  `Copy.gd` bargain body is now effect-first — a plain mechanical sentence
+  (e.g. `"Attack range +40."`) followed by the existing short Grimm line
+  (e.g. `"Your reach grows."`) on its own line, so the number the card
+  actually grants is readable, not just the flavour. `BargainCard`'s
+  single `Title` label already autowraps, so the two-line body needed no
+  scene change. Every `Copy.TICK_*` pick-juice string was relocked to a
+  terser, stat-labelled form (e.g. `+reach` → `+range`, `+might −flesh` →
+  `+dmg −HP`) — same tick mechanism, new locked text. Both card and tick
+  strings use the Unicode minus sign (`−`) wherever a stat drops, matching
+  the existing `TICK_TITHE_OF_FLESH` precedent rather than an ASCII
+  hyphen. A new one-shot **Curse intro** card
+  (`scripts/ui/CurseIntro.gd` + `scenes/ui/CurseIntro.tscn`) explains the
+  HUD's `Copy.HUD_LEVEL` ("Curse %d") counter before the player's first
+  run: title/body/`Begin` CTA use the new locked `Copy.CURSE_INTRO_*`
+  constants, the card reuses the same bargain-card `NinePatchRect` frame
+  (bone outline / soot fill / bruise thorn corners) stretched to ~280×160,
+  and sits over the same rot-wash-under-soot-vignette backdrop as
+  `BargainModal`/`EndPanel` (no new chrome, no sixth colour). `Begin` is
+  styled bone-on-bruise (`bg` bruise / border curse / font bone,
+  inverting to curse/bone/soot on hover) to read as a distinct CTA from
+  the soot-styled `UITheme` buttons elsewhere. The card pauses the tree
+  in `_ready()` exactly the way `BargainModal` pauses it mid-run (so no
+  wave spawns or survive-timer ticks happen underneath it), and unpauses
+  on `Begin`. It shows at most once per save: a `seen_curse_intro` flag
+  persists to a small `ConfigFile` at `user://save.cfg`, so `Main.tscn`
+  (which now also instances `CurseIntro`) skips straight into the roam on
+  every later boot. Out of scope for this pass per the brief: any aura/
+  Area2D visual, a clear-tool, remapping `LONGER_SHADOW`'s tick to
+  `+clear`, and any new icon art. Verified headlessly (Godot 4.7.2
+  `--headless --path . --import`, then a `--quit-after` smoke run) with
+  no runtime errors, plus a byte-level diff-check that every relocked
+  `Copy.gd` string (including the Unicode minus signs) matches the locked
+  text exactly.
