@@ -15,16 +15,25 @@ const PROJECTILE_SCENE := preload("res://scenes/player/Projectile.tscn")
 @export var attack_interval := 0.85
 @export var attack_range := 170.0
 @export var pickup_radius := 46.0
+## Clear-tool aura stats -- mirrored onto the child `Aura` node in `_ready`
+## and whenever `LONGER_SHADOW` (the "aura_radius" upgrade stat) grows it.
+@export var aura_radius := 56.0
+@export var aura_damage := 3.0
+@export var aura_tick_interval := 0.6
 
 var health: float
 
 @onready var attack_timer: Timer = $AttackTimer
+@onready var aura: Aura = $Aura
 
 func _ready() -> void:
 	health = max_health
 	add_to_group("player")
 	attack_timer.wait_time = attack_interval
 	attack_timer.timeout.connect(_on_attack_timer_timeout)
+	aura.radius = aura_radius
+	aura.damage = aura_damage
+	aura.tick_interval = aura_tick_interval
 	Game.register_player(self)
 
 func _physics_process(_delta: float) -> void:
@@ -109,5 +118,8 @@ func apply_upgrade_stat(stat: String, amount: float) -> void:
 			pickup_radius += amount
 		"attack_range":
 			attack_range += amount
+		"aura_radius":
+			aura_radius += amount
+			aura.radius = aura_radius
 		_:
 			push_warning("Unknown upgrade stat: %s" % stat)

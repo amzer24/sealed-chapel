@@ -1,10 +1,14 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/Player.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/sprites/player/player.png" id="2"]
+[ext_resource type="Script" path="res://scripts/player/Aura.gd" id="3"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1"]
 radius = 11.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2"]
+radius = 56.0
 
 [node name="Player" type="CharacterBody2D"]
 collision_layer = 1
@@ -24,6 +28,20 @@ texture = ExtResource("2")
 [node name="AttackTimer" type="Timer" parent="."]
 wait_time = 0.85
 autostart = true
+
+[node name="Aura" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("3")
+radius = 56.0
+damage = 3.0
+tick_interval = 0.6
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Aura"]
+shape = SubResource("CircleShape2D_2")
+
+[node name="TickTimer" type="Timer" parent="Aura"]
+wait_time = 0.6
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position_smoothing_enabled = true
