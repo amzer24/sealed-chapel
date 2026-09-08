@@ -55,11 +55,31 @@ No external asset import step is required — see [Placeholder art](#placeholder
 - **Waves** — a simple spawner (`scripts/world/World.gd`) that spawns more
   enemies (mostly Crawlers, a rarer chance of a Wraith), more often, the
   longer the run goes.
-- **Curse bargain (level-up)** — collecting enough XP opens three curse
-  cards centred as a modal over a **dimmed, paused** playfield; picking one
-  applies the upgrade and resumes combat. Diegetic panel/button styling only
-  — no default Godot theme chrome. `scripts/autoload/Game.gd` +
+- **Bargain (level-up)** — collecting enough XP opens a modal, up to three
+  cards, centred over a **dimmed, paused** playfield; picking one applies
+  the upgrade and resumes combat. Diegetic panel/button styling only — no
+  default Godot theme chrome. `scripts/autoload/Game.gd` +
   `scripts/ui/BargainModal.gd` + `scripts/ui/BargainCard.gd`.
+  - **Seven stackable bargains** — `Game.UPGRADE_POOL` holds seven bargain
+    commons (`longer_shadow`/`fever_pulse`/`tithe_of_flesh`/`bone_ward`/
+    `greedy_hands`/`glass_bell`/`heavy_hand`); every id can be offered and
+    struck more than once in a run (no once-per-run gate). Each level-up
+    offer is 3 cards drawn from the full pool, capped at 2 cards per
+    bless/curse tag (`Game._build_offer`, `Game.MAX_OFFER_PER_TAG`) so the
+    offer prefers a mix over three of a kind. `BargainCard`'s curse pip
+    shows on whichever cards are tagged `"curse"` (the two that pay their
+    gain with a `max_health` cost), not a fixed id.
+  - **Pick juice** — striking a bargain plays a brief bone-coloured screen
+    flash plus a floating tick label (`Copy.TICK_*`, e.g. `+reach`,
+    `+might −flesh`) over the just-resumed playfield, then the modal fully
+    hides again (`BargainModal._play_pick_juice`).
+- **Heart pickup** — a mute HP pickup (`scripts/pickups/Heart.gd`,
+  `assets/sprites/pickups/heart.png`), sibling to the XP orb: same
+  drift-into-pickup-radius-then-collect behaviour, but no floating label on
+  collect. Restores a flat chunk of health (`Heart.heal_amount`) via
+  `Player.heal`, which tops up current HP without moving the `max_health`
+  ceiling. Dropped rarely from enemy deaths (`Game.HEART_DROP_CHANCE`,
+  rarer than the XP drop).
 - **End states** — death (overrun) or a timed clear both show a themed panel
   (not the default engine dialog) with a short Grimm line and an **Again**
   button that restarts the run. `scripts/ui/EndPanel.gd`.
@@ -294,3 +314,44 @@ generator, on purpose (a simple streamer over a "perfect" infinite world):
   `fog.global_position` to the player's current chunk origin — fog is
   still not glued to the player. Re-ran the headless smoke test (Godot
   4.7.2 headless, `--import` then a short run) with no runtime errors.
+- **Seven stackable bargains + Heart heal (this pass):** the bargain pool
+  grew from three once-only curses to seven stackable commons — added
+  `bone_ward` (`max_health+`, tops up current HP by the same delta via the
+  existing `apply_upgrade_stat` "max_health" case, so it can never be the
+  cause of death), `greedy_hands` (`pickup_radius+`), `glass_bell`
+  (`move_speed+` / `max_health-`, a curse) and `heavy_hand` (`damage+`) to
+  the existing `longer_shadow` / `fever_pulse` / `tithe_of_flesh`. Their
+  icons and copy one-liners were already wired
+  (`BargainCard.ICON_PATHS`, `Copy.gd`); `Player.apply_upgrade_stat`
+  needed no new stat cases since every bargain reuses the six stats it
+  already handles. `Game._trigger_bargain` no longer filters
+  `UPGRADE_POOL` by `bargain_history` — every id can be offered and struck
+  again, so the pool never runs dry and `Copy.BARGAIN_EMPTY` is now only a
+  defensive fallback path (kept, but effectively unreachable). Each offer
+  is still exactly 3 cards, now drawn from the full seven and capped at 2
+  cards per bless/curse tag (`Game._build_offer`) so an offer prefers a
+  mix over three of a kind; `BargainCard`'s curse-gold pip now reflects
+  that same tag (the two cards with a `max_health` cost) instead of a
+  single hardcoded id. Picking a card now also plays a brief pick-juice
+  flash + floating tick label (`Copy.TICK_*`, e.g. `+reach`, `+might
+  −flesh`) over the resumed playfield before the modal fully re-hides
+  (`BargainModal._play_pick_juice`) — pause-on-open and centred-card
+  behaviour are untouched. A new **Heart** pickup
+  (`scripts/pickups/Heart.gd`, `assets/sprites/pickups/heart.png`) is a
+  mute sibling to the XP orb (same drift-then-collect behaviour, no
+  floating label) that restores a flat chunk of HP via a new
+  `Player.heal()` helper (refills under the existing `max_health` ceiling,
+  distinct from a bargain's max-health-shifting case); `Enemy._on_death`
+  drops one rarely (`Game.HEART_DROP_CHANCE`), rarer than the XP drop.
+  Verified headlessly against a temporary harness scene driving the real
+  `Main.tscn` + `BargainModal` UI (Godot 4.7.2 headless): forced
+  back-to-back bargains confirmed every offer is 3 cards with ≤2 per tag,
+  confirmed stacking (the same id struck more than once in one run),
+  clicked a real `BargainCard` button through the actual signal path to
+  confirm the pick-juice tween runs and the modal re-hides afterward, and
+  confirmed `Player.heal()` restores HP and clamps at `max_health`. Also
+  re-ran the plain `Main.tscn` headlessly (`--quit-after 300`) with no
+  runtime errors. Out of scope per the brief: orbit garlic, regen,
+  lifesteal, multi-shot, rarity tiers, and any stat beyond
+  `attack_range`/`attack_speed`/`damage`/`max_health`/`move_speed`/
+  `pickup_radius`.
