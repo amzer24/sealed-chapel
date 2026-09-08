@@ -35,8 +35,9 @@ No external asset import step is required — see [Placeholder art](#placeholder
 ## What the Prototype includes
 
 - **Procedural, endless roam** — no fixed map rectangle. `World.gd` streams
-  square chunks (32×32 tiles, ~1024×1024px each) of procedurally-painted
-  ground in around the player, unloading chunks once they're a couple of
+  square chunks (32×32 tiles, ~1024×1024px each) of ground, painted from
+  the authored peat tile atlas onto a `TileMapLayer`, in around the
+  player, unloading chunks once they're a couple of
   chunks behind. Each chunk's ground + dressing is generated from a seed
   derived from its own coordinate, so revisiting a chunk always regenerates
   the *same* layout deterministically, without needing to keep it resident.
@@ -135,7 +136,7 @@ scripts/
   autoload/UITheme.gd        Builds the one shared diegetic Theme in code
   ui/Palette.gd              Shared colour constants (soot/bone/bruise/curse/rot)
   ui/Copy.gd                 Locked UK-English copy constants
-  world/World.gd             Chunk streamer: procedural ground + dressing + waves
+  world/World.gd             Chunk streamer: peat TileMapLayer ground + dressing + waves
   player/, enemies/, pickups/, props/   Gameplay scripts
 ```
 
@@ -151,7 +152,8 @@ generator, on purpose (a simple streamer over a "perfect" infinite world):
   are guaranteed loaded; anything farther than `KEEP_RADIUS` (2) is
   unloaded. The gap between the two radii is deliberate hysteresis so nearby
   chunks don't load/unload every time the player nudges a boundary.
-- Loading a chunk creates one `TileMap` (ground) plus a handful of
+- Loading a chunk creates one `TileMapLayer` (ground, painted from the
+  authored peat atlas at `assets/tiles/peat_atlas.png`) plus a handful of
   `Polygon2D` dressing props, seeded from a hash of the chunk's own
   coordinate — so the same chunk always regenerates identically if the
   player wanders back into it, without the engine needing to keep it
@@ -256,6 +258,30 @@ generator, on purpose (a simple streamer over a "perfect" infinite world):
   bargain pick) plus an offscreen `--rendering-driver opengl3` capture of
   the new sprites at 1× and the NinePatch bargain modal to confirm the
   cast and cards read correctly — no runtime errors in either.
+- **Peat atlas: quiet 32px TileMapLayer (this pass):** the ground was a
+  runtime-generated 4-colour atlas (soot/rot/bruise/curse squares with a
+  tiny per-pixel flicker) painted onto a legacy `TileMap` — the bruise and
+  curse tiles in particular read as loud tan/purple wallpaper blocks, and
+  the flat per-tile colour made the streaming grid visible while roaming.
+  Ground is now a single authored 96×32 PNG,
+  `assets/tiles/peat_atlas.png` (three 32×32 tiles: sparse / mid /
+  packed), built only from soot `#1A1410` and rot `#2D1F18` — kept close
+  in value via a per-pixel stochastic dither (not a flat fill, not an
+  ordered Bayer grid, so no periodic checkerboard) — plus a sparse
+  scatter of 1–2px bone/curse grit per tile (never a block, and under 2%
+  of pixels even on `packed`). All three variants share the exact same
+  base dither field, so any two tiles butt together with no visible seam
+  regardless of which pair lands next to each other. `World.gd` now
+  builds its shared `TileSet` from that real PNG (`GROUND_ATLAS`) instead
+  of synthesizing an `Image` at runtime, every chunk's ground node is a
+  `TileMapLayer` (Godot 4.3+) rather than the deprecated multi-layer
+  `TileMap` (`set_cell` calls updated to the layer-less signature), and
+  each `TileMapLayer` sets `texture_filter = NEAREST` so the atlas stays
+  hard-pixel like the cast. Tile size is unchanged (`World.TILE_SIZE =
+  32`); weighting shifted from 4 colour variants to 3 density variants
+  (sparse 60% / mid 30% / packed 10%) so the floor stays quiet on
+  average. Cast sprites, the bargain flow, `Copy.gd` and
+  `CanvasModulate`/HUD are untouched.
 - **Fog retint (Shade PASS+NOTES follow-up):** the five `Fog` `Polygon2D`
   clouds in `World.tscn` no longer use the pale lilac
   `Color(0.55, 0.55, 0.62, 0.14)` placeholder, which read as glowing light
