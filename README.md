@@ -438,3 +438,54 @@ generator, on purpose (a simple streamer over a "perfect" infinite world):
   (`--quit-after 300`) with no runtime errors. Out of scope per the brief:
   orbit garlic sprites, MultiMesh, regen, lifesteal, multi-shot, new enemy
   types, and any TileMapLayer/ground changes.
+- **Bug fix: aura-off at run start + hit-flash + Heart draw order (this
+  pass):** the previous pass's `Aura` was live from the moment `Player`
+  entered the tree -- ticking soft DPS and drawing its ring before any
+  `LONGER_SHADOW` had ever been struck. `Aura.gd` now starts fully OFF
+  (`monitoring` false, its own `_process` off, `_draw()` a no-op) and
+  only switches on via a new one-way `activate()`, called the first time
+  `Player.apply_upgrade_stat("aura_radius", ...)` runs; every stack after
+  that just grows the radius by the bargain's own amount (still +40) and
+  re-applies it. `Player` no longer pokes `Aura`'s `radius`/`damage`/
+  `tick_interval` fields directly (which quietly relied on `Aura`'s own
+  `_ready` -- child nodes ready before their parent -- having already run
+  by the time `Player._ready` touched them): both `_ready` and every
+  later stack now go through an explicit `Aura.apply_config(radius,
+  damage, tick_interval)`, which is safe to call whether or not `Aura`'s
+  own `_ready` has fired yet. `Player.apply_upgrade_stat`'s long-dead
+  `"attack_range"` arm (orphaned by the previous pass's remap to
+  `"aura_radius"`, but never actually deleted) is now gone; the
+  projectile's `attack_range` is untouched and still just `Player`'s
+  fixed default. The ring itself is bumped from the old `0.4` alpha to
+  the locked `~0.65` (still curse-gold `#C4A35A`, still a bare
+  `draw_arc` stroke -- no interior fill was ever added) and now briefly
+  flashes bone `#E8DCC8` for `0.12s` on any tick that actually lands a
+  hit, so the quiet soft-DPS reads as a visible pulse rather than silent
+  drain (same hard, non-antialiased stroke -- no soft glow layered on
+  top). Separately, `Heart.tscn` gets `z_index = 1` so a Heart always
+  draws over XP orbs on the `World` `YSort` layer at the same on-screen
+  height, and `Enemy.gd`'s heart-drop offset is replaced with a
+  `_heart_scatter_offset()` that lands the Heart a random `12`-`18`px
+  from the XP pickup spawned at the same death (the old fixed `(0, -8)`
+  nudge was under the `12px` floor). `LONGER_SHADOW`'s `Copy.gd` body and
+  tick strings are untouched (still locked exact) since the effect-first
+  copy already reads as the general "+40, wider aura" mechanic and isn't
+  tied to a specific stack. Verified headlessly with a temporary harness
+  scene (not committed) that instanced a real `Player` + `Crawler`
+  outside the editor: confirmed the aura starts with `monitoring` off and
+  the Crawler takes no damage before any bargain is struck; confirmed the
+  first `"aura_radius"` stack activates the aura at the base `56.0`
+  radius (not `+40`) and the Crawler then does take tick damage; confirmed
+  a second stack grows `Player.aura_radius`/`Aura.radius` to `96.0`;
+  confirmed a tick that lands a hit sets `Aura`'s flash timer; confirmed
+  the dead `"attack_range"` arm now only logs `push_warning`'s generic
+  "Unknown upgrade stat" and leaves `Player.attack_range` untouched; and
+  confirmed a `Heart` instance's `z_index` sits above an `XPOrb`'s and
+  `Enemy._heart_scatter_offset()` never returns a vector shorter than
+  `12px` across 20 samples. Also re-imported and re-ran the plain
+  `Main.tscn` headlessly (Godot `4.7.2-stable` linux, `--headless --path .
+  --import` then `--quit-after 180`) with no runtime errors. Out of scope
+  per the brief: always-on aura, multi-orbit, new bargain cards, any UI
+  rewrite, the `_process`-deferred-`queue_free` refactor noted in
+  `Enemy.gd`/`XPOrb.gd`/`Heart.gd` (flagged for a future pass, not touched
+  here), dual-grid, and PixelLab.

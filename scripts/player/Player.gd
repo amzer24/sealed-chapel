@@ -13,15 +13,25 @@ const PROJECTILE_SCENE := preload("res://scenes/player/Projectile.tscn")
 @export var max_health := 60.0
 @export var attack_damage := 8.0
 @export var attack_interval := 0.85
+## No longer upgradeable (the dead "attack_range" bargain arm was removed
+## from `apply_upgrade_stat`) -- this is just the projectile's fixed
+## targeting reach now.
 @export var attack_range := 170.0
 @export var pickup_radius := 46.0
-## Clear-tool aura stats -- mirrored onto the child `Aura` node in `_ready`
-## and whenever `LONGER_SHADOW` (the "aura_radius" upgrade stat) grows it.
+## Clear-tool aura stats -- pushed onto the child `Aura` node via its
+## `apply_config()` (never by poking `Aura`'s fields directly, see Aura.gd)
+## once after `_ready` and again on every `LONGER_SHADOW` stack after the
+## first. The aura itself starts OFF; the first "aura_radius" stack just
+## calls `Aura.activate()` at these base stats, and every stack after that
+## grows `aura_radius` by the bargain's amount before re-applying it.
 @export var aura_radius := 56.0
 @export var aura_damage := 3.0
 @export var aura_tick_interval := 0.6
 
 var health: float
+## Whether the first `LONGER_SHADOW` has been struck yet -- gates whether
+## the "aura_radius" upgrade stat activates the aura or grows it further.
+var aura_unlocked := false
 
 @onready var attack_timer: Timer = $AttackTimer
 @onready var aura: Aura = $Aura
@@ -31,9 +41,7 @@ func _ready() -> void:
 	add_to_group("player")
 	attack_timer.wait_time = attack_interval
 	attack_timer.timeout.connect(_on_attack_timer_timeout)
-	aura.radius = aura_radius
-	aura.damage = aura_damage
-	aura.tick_interval = aura_tick_interval
+	aura.apply_config(aura_radius, aura_damage, aura_tick_interval)
 	Game.register_player(self)
 
 func _physics_process(_delta: float) -> void:
@@ -116,10 +124,15 @@ func apply_upgrade_stat(stat: String, amount: float) -> void:
 			Game.update_health(health, max_health)
 		"pickup_radius":
 			pickup_radius += amount
-		"attack_range":
-			attack_range += amount
 		"aura_radius":
-			aura_radius += amount
-			aura.radius = aura_radius
+			# First stack just switches the aura on at its base stats (no
+			# ring/DPS exist before this); every stack after that grows
+			# the radius by the bargain's own amount and re-applies it.
+			if not aura_unlocked:
+				aura_unlocked = true
+				aura.activate()
+			else:
+				aura_radius += amount
+				aura.apply_config(aura_radius, aura_damage, aura_tick_interval)
 		_:
 			push_warning("Unknown upgrade stat: %s" % stat)
