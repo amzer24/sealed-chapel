@@ -256,3 +256,15 @@ generator, on purpose (a simple streamer over a "perfect" infinite world):
   bargain pick) plus an offscreen `--rendering-driver opengl3` capture of
   the new sprites at 1× and the NinePatch bargain modal to confirm the
   cast and cards read correctly — no runtime errors in either.
+- **Fog retint (Shade PASS+NOTES follow-up):** the five `Fog` `Polygon2D`
+  clouds in `World.tscn` no longer use the pale lilac
+  `Color(0.55, 0.55, 0.62, 0.14)` placeholder, which read as glowing light
+  pools rather than atmosphere. They now alternate low-alpha soot
+  `#1A1410` and rot `#2D1F18` (alpha 0.22–0.28) so the clouds read as dark
+  Grimm haze against the ground instead of a lit fill — only existing
+  palette hexes are used, no sixth colour. The world-anchored,
+  chunk-reanchor behaviour from the earlier fog fix is untouched: `Fog.gd`
+  still drifts each cloud locally, and `World.gd` still only snaps
+  `fog.global_position` to the player's current chunk origin — fog is
+  still not glued to the player. Re-ran the headless smoke test (Godot
+  4.7.2 headless, `--import` then a short run) with no runtime errors.

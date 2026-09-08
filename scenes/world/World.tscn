@@ -19,27 +19,27 @@ script = ExtResource("2")
 
 [node name="Cloud1" type="Polygon2D" parent="Fog"]
 position = Vector2(-420, -220)
-color = Color(0.55, 0.55, 0.62, 0.14)
+color = Color(0.101961, 0.078431, 0.062745, 0.28)
 polygon = PackedVector2Array(0, -160, 115, -115, 160, 0, 115, 115, 0, 160, -115, 115, -160, 0, -115, -115)
 
 [node name="Cloud2" type="Polygon2D" parent="Fog"]
 position = Vector2(380, -280)
-color = Color(0.55, 0.55, 0.62, 0.14)
+color = Color(0.176471, 0.121569, 0.094118, 0.28)
 polygon = PackedVector2Array(0, -160, 115, -115, 160, 0, 115, 115, 0, 160, -115, 115, -160, 0, -115, -115)
 
 [node name="Cloud3" type="Polygon2D" parent="Fog"]
 position = Vector2(-320, 300)
-color = Color(0.55, 0.55, 0.62, 0.14)
+color = Color(0.101961, 0.078431, 0.062745, 0.28)
 polygon = PackedVector2Array(0, -160, 115, -115, 160, 0, 115, 115, 0, 160, -115, 115, -160, 0, -115, -115)
 
 [node name="Cloud4" type="Polygon2D" parent="Fog"]
 position = Vector2(400, 260)
-color = Color(0.55, 0.55, 0.62, 0.14)
+color = Color(0.176471, 0.121569, 0.094118, 0.28)
 polygon = PackedVector2Array(0, -160, 115, -115, 160, 0, 115, 115, 0, 160, -115, 115, -160, 0, -115, -115)
 
 [node name="Cloud5" type="Polygon2D" parent="Fog"]
 position = Vector2(20, -20)
-color = Color(0.55, 0.55, 0.62, 0.14)
+color = Color(0.101961, 0.078431, 0.062745, 0.22)
 polygon = PackedVector2Array(0, -160, 115, -115, 160, 0, 115, 115, 0, 160, -115, 115, -160, 0, -115, -115)
 
 [node name="SpawnTimer" type="Timer" parent="."]
