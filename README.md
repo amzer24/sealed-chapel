@@ -180,6 +180,16 @@ generator, on purpose (a simple streamer over a "perfect" infinite world):
   procedural ground texture (`World.gd`) now pull only from those five.
   Non-UI placeholder art (mobs, props, player, pickups) was left as-is —
   recolouring those is an art pass, not part of this palette-lock ticket.
+- **Bargain dim → soot vignette wash (Shade note):** the bargain modal's
+  flat `Dim` `ColorRect` is now a soft radial vignette instead of a single
+  flat fill. `BargainModal.tscn` layers a low-alpha rot (`#2D1F18`) base
+  wash under a radial `GradientTexture2D` (soot `#1A1410`, alpha ramping
+  from ~0.3 at centre to ~0.94 at the corners) so the screen darkens
+  toward the edges while the centre — where the bargain cards sit — stays
+  readable. Both nodes are still `mouse_filter`-passthrough and sit behind
+  the card `Panel`; pause-on-open and centred-card behaviour are
+  untouched. Only existing palette hexes are used — no grey slab, no
+  sixth colour.
 - `Game` and `UITheme` are the only autoloads; everything else is composed
   through normal scene instancing (`Main.tscn` instances `World`, `HUD`,
   `BargainModal`, `EndPanel` as siblings).
