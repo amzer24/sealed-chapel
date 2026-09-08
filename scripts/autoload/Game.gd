@@ -27,6 +27,14 @@ const HEART_SCENE := preload("res://scenes/pickups/Heart.tscn")
 ## Hearts are a rarer drop than XP orbs -- most enemy deaths only drop XP.
 const HEART_DROP_CHANCE := 0.12
 
+## Survivors-zoom A/B for cast readability (Investigation: Camera2D zoom
+## A/B for cast scale). `Player.gd` reads this once in `_ready` and applies
+## it to its `Camera2D.zoom`. Flip this one line and re-run to compare a
+## candidate -- no other file needs to change. Candidates under test:
+## Vector2(1.5, 1.5), Vector2(2.0, 2.0), Vector2(2.5, 2.5). Defaulted to the
+## middle candidate since no zoom was previously set.
+const CAMERA_ZOOM := Vector2(2.0, 2.0)
+
 ## The seven stackable bargain commons. Every id is repeatable: the same
 ## bargain can be offered and struck again in a later level-up (there is
 ## no once-per-run gate). Each card is tagged "bless" (pure gain) or
