@@ -23,10 +23,10 @@ func setup(data: Dictionary) -> void:
 func _icon_color_for(id: String) -> Color:
 	match id:
 		"longer_shadow":
-			return Palette.CURSE_GOLD
+			return Palette.CURSE
 		"fever_pulse":
-			return Palette.DRIED_BLOOD
+			return Palette.ROT
 		"tithe_of_flesh":
-			return Palette.BRUISE_PURPLE
+			return Palette.BRUISE
 		_:
 			return Palette.BONE

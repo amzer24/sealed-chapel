@@ -1,8 +1,9 @@
 extends CanvasLayer
 
 ## The level-up bargain: three curse cards centred over a dimmed, paused
-## playfield. Picking one applies the upgrade and resumes combat. Once all
-## three studio-locked pacts have been struck, later level-ups instead show
+## playfield. There is no modal headline -- each card carries its own
+## locked one-liner, so that is the only bargain copy shown. Once all three
+## studio-locked pacts have been struck, later level-ups instead show
 ## `Copy.BARGAIN_EMPTY` for a moment before auto-resuming.
 
 const BARGAIN_CARD_SCENE := preload("res://scenes/ui/BargainCard.tscn")
@@ -25,12 +26,15 @@ func _on_bargain_offered(cards: Array) -> void:
 
 	if cards.is_empty():
 		title_label.text = Copy.BARGAIN_EMPTY
+		title_label.visible = true
 		cards_box.visible = false
 		visible = true
 		empty_timer.start(EMPTY_DISMISS_DELAY)
 		return
 
-	title_label.text = Copy.BARGAIN_TITLE
+	# No modal headline: the cards carry the only bargain copy.
+	title_label.text = ""
+	title_label.visible = false
 	cards_box.visible = true
 	for card_data in cards:
 		var card := BARGAIN_CARD_SCENE.instantiate()

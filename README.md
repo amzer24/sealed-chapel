@@ -4,9 +4,8 @@
 
 A Grimm fairy-tale, Vampire-Survivors-style prototype built in **Godot 4.x**
 (GDScript). A **procedural, endless** roam through a haunted wood and a
-ruined chapel clearing — soot, bone, bruise-purple, dried-blood and
-curse-gold set dressing, diegetic storybook UI, and a curse-bargain
-level-up loop.
+ruined chapel clearing — soot, bone, bruise-purple, curse-gold and rot set
+dressing, diegetic storybook UI, and a curse-bargain level-up loop.
 
 This is explicitly **not** a sealed combat ring: the map is not a single
 fixed, hand-authored rectangle. Square chunks of ground + dressing stream
@@ -58,8 +57,11 @@ No external asset import step is required — see [Placeholder art](#placeholder
 - **End states** — death (overrun) or a timed clear both show a themed panel
   (not the default engine dialog) with a short Grimm line and an **Again**
   button that restarts the run. `scripts/ui/EndPanel.gd`.
-- **Diegetic HUD** — carved health/curse bars and a "till dawn" countdown,
-  all hand-styled (`scripts/autoload/UITheme.gd`), no default `Theme`.
+- **Diegetic HUD** — carved health/curse bars, a level label and a
+  countdown to dawn, all hand-styled (`scripts/autoload/UITheme.gd`), no
+  default `Theme`. The level/countdown labels use the studio-locked
+  `Copy.HUD_LEVEL` ("Curse %d") and `Copy.HUD_TIMER` ("%d:%02d to dawn")
+  format strings.
 - **Kitbashed dressing** — dead trees, a broken chapel ruin, candle
   clusters with a soft glow, a *broken* iron fence (two short, disconnected
   runs — deliberately not a ring), a drifting fog layer, and a bargain
@@ -67,7 +69,9 @@ No external asset import step is required — see [Placeholder art](#placeholder
   `scenes/props/`.
 - A shared **colour palette** (`scripts/ui/Palette.gd`) and **copy
   constants** (`scripts/ui/Copy.gd`, including the locked `DEATH_TITLE` /
-  `CTA_AGAIN` strings) so the whole prototype pulls from one place.
+  `CTA_AGAIN` strings) so the whole prototype pulls from one place. The
+  palette is locked to exactly five hexes: soot `#1A1410`, bone `#E8DCC8`,
+  bruise `#4A3A5C`, curse `#C4A35A`, rot `#2D1F18`.
 
 ## What the Prototype excludes (out of scope)
 
@@ -120,7 +124,7 @@ scenes/
 scripts/
   autoload/Game.gd           Run state: timer, XP/level curve, bargain flow, win/lose
   autoload/UITheme.gd        Builds the one shared diegetic Theme in code
-  ui/Palette.gd              Shared colour constants (soot/bone/bruise/blood/gold)
+  ui/Palette.gd              Shared colour constants (soot/bone/bruise/curse/rot)
   ui/Copy.gd                 Locked UK-English copy constants
   world/World.gd             Chunk streamer: procedural ground + dressing + waves
   player/, enemies/, pickups/, props/   Gameplay scripts
@@ -158,6 +162,24 @@ generator, on purpose (a simple streamer over a "perfect" infinite world):
 
 ## Notes for reviewers
 
+- **Copy strip (post-merge polish):** the bargain modal no longer shows an
+  "A bargain is offered..." headline — each `BargainCard` carries the only
+  copy (its one-liner). `EndPanel` shows a title + the **Again** button
+  only, with no invented body line (the old "Curse level %d reached...
+  creatures put down." summary is gone). The HUD's level and countdown
+  labels are studio-locked, not invented: `Copy.HUD_LEVEL` ("Curse %d")
+  and `Copy.HUD_TIMER` ("%d:%02d to dawn"), wired in `HUD.gd`. The seven
+  panel/bargain constants in `Copy.gd` (`DEATH_TITLE`, `CLEAR_TITLE`,
+  `BARGAIN_EMPTY`, `CTA_AGAIN`, `LONGER_SHADOW`, `FEVER_PULSE`,
+  `TITHE_OF_FLESH`) are unchanged.
+- **Palette lock (post-merge polish):** `Palette.gd` now exposes exactly
+  five colours — soot `#1A1410`, bone `#E8DCC8`, bruise `#4A3A5C`, curse
+  `#C4A35A`, rot `#2D1F18` — with no derived "dim"/"dark" float variants
+  and no sixth "dried-blood" colour. Every UI script/scene (`HUD`,
+  `BargainModal`, `BargainCard`, `EndPanel`, `UITheme`) and the world's
+  procedural ground texture (`World.gd`) now pull only from those five.
+  Non-UI placeholder art (mobs, props, player, pickups) was left as-is —
+  recolouring those is an art pass, not part of this palette-lock ticket.
 - `Game` and `UITheme` are the only autoloads; everything else is composed
   through normal scene instancing (`Main.tscn` instances `World`, `HUD`,
   `BargainModal`, `EndPanel` as siblings).
