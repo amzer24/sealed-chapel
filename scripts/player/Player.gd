@@ -35,6 +35,7 @@ var aura_unlocked := false
 
 @onready var attack_timer: Timer = $AttackTimer
 @onready var aura: Aura = $Aura
+@onready var camera: Camera2D = $Camera2D
 
 func _ready() -> void:
 	health = max_health
@@ -42,6 +43,7 @@ func _ready() -> void:
 	attack_timer.wait_time = attack_interval
 	attack_timer.timeout.connect(_on_attack_timer_timeout)
 	aura.apply_config(aura_radius, aura_damage, aura_tick_interval)
+	camera.zoom = Game.CAMERA_ZOOM
 	Game.register_player(self)
 
 func _physics_process(_delta: float) -> void:
