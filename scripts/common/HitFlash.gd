@@ -28,12 +28,24 @@ extends Sprite2D
 ##
 ## So `mirror()` bakes a flat bone-recoloured copy of the target's texture
 ## once (same alpha shape, solid `Palette.BONE` fill), and `flash()` Tweens
-## this sprite's own `self_modulate` alpha up then back down over it --
-## bone is already baked into the pixels, so the Tween only needs to
-## control how much of it shows through.
+## this sprite's own `self_modulate` alpha up, holds it, then back down
+## over it -- bone is already baked into the pixels, so the Tween only
+## needs to control how much of it shows through.
+##
+## Bug fix (Lee playtest FAIL, completely invisible): the Tween's default
+## pause mode (`TWEEN_PAUSE_BOUND`) ties its progress to this node's own
+## pause behaviour, which in turn follows `SceneTree.paused` -- confirmed
+## with a live instrumented repro that `self_modulate.a` never left `0.0`
+## while the tree was paused (e.g. `CurseIntro`'s first-run pause), no
+## matter how much time passed. `flash()` now forces `TWEEN_PAUSE_PROCESS`
+## so a triggered flash always completes. Separately, the previous
+## rise/fall alone (0.04s/0.08s, no hold) was confirmed to work
+## mechanically but reads as too brief to register during real combat --
+## lengthened per the Source brief and given an explicit hold plateau.
 
-const RISE_TIME := 0.04
-const FALL_TIME := 0.08
+const RISE_TIME := 0.07
+const HOLD_TIME := 0.1
+const FALL_TIME := 0.16
 
 var _tween: Tween
 
@@ -56,5 +68,7 @@ func flash() -> void:
 	if _tween:
 		_tween.kill()
 	_tween = create_tween()
+	_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	_tween.tween_property(self, "self_modulate:a", 1.0, RISE_TIME)
+	_tween.tween_interval(HOLD_TIME)
 	_tween.tween_property(self, "self_modulate:a", 0.0, FALL_TIME)
