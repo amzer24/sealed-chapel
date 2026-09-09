@@ -31,9 +31,8 @@ const HEART_DROP_CHANCE := 0.12
 ## A/B for cast scale). `Player.gd` reads this once in `_ready` and applies
 ## it to its `Camera2D.zoom`. Flip this one line and re-run to compare a
 ## candidate -- no other file needs to change. Candidates under test:
-## Vector2(1.5, 1.5), Vector2(2.0, 2.0), Vector2(2.5, 2.5). Defaulted to the
-## middle candidate since no zoom was previously set.
-const CAMERA_ZOOM := Vector2(2.0, 2.0)
+## Vector2(1.5, 1.5), Vector2(2.0, 2.0), Vector2(2.5, 2.5). Locked to 2.5 after Lee pick (1.5 cut; 2.0 vs 2.5 A/B).
+const CAMERA_ZOOM := Vector2(2.5, 2.5)
 
 ## The seven stackable bargain commons. Every id is repeatable: the same
 ## bargain can be offered and struck again in a later level-up (there is
