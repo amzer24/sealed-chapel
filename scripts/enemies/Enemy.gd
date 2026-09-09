@@ -24,6 +24,10 @@ var _pending_free := false
 
 @onready var attack_area: Area2D = $AttackArea
 @onready var contact_timer: Timer = $ContactTimer
+@onready var visual: Node2D = $Visual
+@onready var sprite: Sprite2D = $Visual/Sprite
+
+var _hit_flash: HitFlash
 
 func _ready() -> void:
 	add_to_group("enemies")
@@ -34,6 +38,9 @@ func _ready() -> void:
 	contact_timer.wait_time = contact_interval
 	contact_timer.timeout.connect(_on_contact_timer_timeout)
 	contact_timer.start()
+	_hit_flash = HitFlash.new()
+	visual.add_child(_hit_flash)
+	_hit_flash.mirror(sprite)
 
 func _physics_process(_delta: float) -> void:
 	if _pending_free:
@@ -53,6 +60,7 @@ func _process(_delta: float) -> void:
 func take_damage(amount: float) -> void:
 	if _pending_free:
 		return
+	_hit_flash.flash()
 	health -= amount
 	if health <= 0.0:
 		_pending_free = true

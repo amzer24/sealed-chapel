@@ -36,6 +36,10 @@ var aura_unlocked := false
 @onready var attack_timer: Timer = $AttackTimer
 @onready var aura: Aura = $Aura
 @onready var camera: Camera2D = $Camera2D
+@onready var visual: Node2D = $Visual
+@onready var sprite: Sprite2D = $Visual/Sprite
+
+var _hit_flash: HitFlash
 
 func _ready() -> void:
 	health = max_health
@@ -45,6 +49,9 @@ func _ready() -> void:
 	aura.apply_config(aura_radius, aura_damage, aura_tick_interval)
 	camera.zoom = Game.CAMERA_ZOOM
 	Game.register_player(self)
+	_hit_flash = HitFlash.new()
+	visual.add_child(_hit_flash)
+	_hit_flash.mirror(sprite)
 
 func _physics_process(_delta: float) -> void:
 	var input_vec := Vector2(
@@ -100,6 +107,7 @@ func heal(amount: float) -> void:
 func take_damage(amount: float) -> void:
 	if health <= 0.0:
 		return
+	_hit_flash.flash()
 	health = max(0.0, health - amount)
 	Game.update_health(health, max_health)
 	if health <= 0.0:
